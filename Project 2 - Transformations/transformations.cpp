@@ -15,45 +15,45 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
-// Global variable initializations 
-// BACKGROUND COLOR GLOBAL VARIABLE
-float red = 0.0f; // for animating the background
+// Global variable initializations
 
 // OBJECT AND MESH DATA VARIABLES
-cy::TriMesh mesh; // global variable for loading and storing scene data (.obj files)
+cy::TriMesh mesh;		 // global variable for loading and storing scene data (.obj files)
 cy::GLSLProgram program; // global variable for compiling and binding shader program
-GLuint vao; // global variable for the vertex array object
-GLuint buffer; //global variable for the vertex buffer object
+GLuint vao;				 // global variable for the vertex array object
+GLuint buffer;			 // global variable for the vertex buffer object
 
 // CAMERA + MATRIX TRANSFORMATION VARIABLES
-glm::vec3 cameraPosition; // global variable for recording the position of the camera
-glm::vec3 cameraTarget; // global variable for recording where the camera is pointing in the scene 
-glm::vec3 cameraUp; // global variable for recording 
-glm::mat4 modelMatrix; // global variable for representing the model space
-glm::mat4 viewMatrix; // global variable for representing the camera/view space
-glm::mat4 projectionMatrix; // global variable for representing the world space
-glm::mat4 mvpMatrix; // global variable for representing mapping coordinate spaces
-float angle_prev_x; // global variable for storing previous x angle for yaw
-float angle_prev_y; // global variable for storing previous y angle for pitch
-float current_angle_x; // global variable for storing current x value from mouse motion
-float current_angle_y; // global variable for storing current y value from mouse motion
+glm::vec3 cameraPosition;	   // global variable for recording the position of the camera
+glm::vec3 cameraTarget;		   // global variable for recording where the camera is pointing in the scene
+glm::vec3 cameraUp;			   // global variable for recording
+glm::mat4 modelMatrix;		   // global variable for representing the model space
+glm::mat4 viewMatrix;		   // global variable for representing the camera/view space
+glm::mat4 projectionMatrix;	   // global variable for representing the world space
+glm::mat4 mvpMatrix;		   // global variable for representing mapping coordinate spaces
+float angle_prev_x;			   // global variable for storing previous x angle for yaw
+float angle_prev_y;			   // global variable for storing previous y angle for pitch
+float current_angle_x;		   // global variable for storing current x value from mouse motion
+float current_angle_y;		   // global variable for storing current y value from mouse motion
 float current_camera_distance; // global variable for storing current camera distance for zoom
-float camera_distance_prev; // global variable for storing previous camera distance for zoom
-float yaw = 0.0f; // global variable for controlling horizontal camera movement
-float pitch = 0.0f; // global variable for controlling verticial camera movement
+float camera_distance_prev;	   // global variable for storing previous camera distance for zoom
+float yaw = 0.0f;			   // global variable for controlling horizontal camera movement
+float pitch = 0.0f;			   // global variable for controlling vertical camera movement
+float FOV = 45.0f;			   // global variable for controlling field of view (zoom)
 
 // MOUSE EVENT VARIABLES (Interaction Booleans and speed)
-float speed = 0.2f; // global variable for controlling speed of zoom and rotation
-bool leftDown = false; // global variable for stating whether the camera angle is being set
-bool rightDown = false; // global variable for stating whether the camera distance is being set
-bool projection = false;
+float speed = 0.2f;		 // global variable for controlling speed of zoom and rotation
+bool leftDown = false;	 // global variable for stating whether the camera angle is being set
+bool rightDown = false;	 // global variable for stating whether the camera distance is being set
+bool projection = false; // global variable for determining the projection status
 
 // CALLBACK FUNCTIONS AND HELPER FUNCTIONS
 
 /// <summary>
 /// Function for initializing the matrices needed for the camera, lighting etc
 /// </summary>
-void matrixInitialize() {
+void matrixInitialize()
+{
 
 	// MODEL MATRIX
 	modelMatrix = glm::mat4(1.0f);
@@ -65,23 +65,23 @@ void matrixInitialize() {
 
 	viewMatrix = glm::lookAt(
 		cameraPosition, // CAMERA POSITION
-		cameraTarget, // and looks at the origin (camera location) CAMERA DIRECTION
-		cameraUp// Head is up (set to 0,-1,0 to look upside-down) // CAMERA RIGHT
+		cameraTarget,	// and looks at the origin (camera location) CAMERA DIRECTION
+		cameraUp		// Head is up (set to 0,-1,0 to look upside-down) // CAMERA RIGHT
 	);
 
 	// PROJECTION MATRIX
 	projectionMatrix = glm::perspective(
-		glm::radians(45.0f),
+		glm::radians(FOV),
 		16.0f / 9.0f,
 		0.1f,
-		100.0f
-	);
+		100.0f);
 }
 
 /// <summary>
 /// Function for computing the bounding box for centering the rotation center for objects in the scene
 /// </summary>
-void boundingBox() {
+void boundingBox()
+{
 	cy::Vec3f boundBoxMin = mesh.GetBoundMin();
 	cy::Vec3f boundBoxMax = mesh.GetBoundMax();
 	float zMidpoint = (boundBoxMax.z - boundBoxMin.z) / 2;
@@ -91,11 +91,18 @@ void boundingBox() {
 /// <summary>
 /// Function for computing the transformations for the camera scene
 /// </summary>
-void matrixTransform() {
+void matrixTransform()
+{
+	projectionMatrix = projectionMatrix = glm::perspective(
+		glm::radians(FOV),
+		16.0f / 9.0f,
+		0.1f,
+		100.0f);
+
 	viewMatrix = glm::lookAt(
 		cameraPosition, // CAMERA POSITION
-		cameraTarget, // and looks at the origin (camera location) CAMERA DIRECTION
-		cameraUp// Head is up (set to 0,-1,0 to look upside-down) // CAMERA RIGHT
+		cameraTarget,	// and looks at the origin (camera location) CAMERA DIRECTION
+		cameraUp		// Head is up (set to 0,-1,0 to look upside-down) // CAMERA RIGHT
 	);
 
 	viewMatrix = glm::translate(viewMatrix, cameraTarget);
@@ -106,24 +113,23 @@ void matrixTransform() {
 /// <summary>
 /// Function for rendering to the display
 /// </summary>
-void myDisplay() {
+void myDisplay()
+{
 	// OpenGLdraw calls here
 
 	// Clear the viewport
-	glClear(GL_COLOR_BUFFER_BIT
-		| GL_DEPTH_BUFFER_BIT
-	);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Render Stuff
 	program.Bind(); // Use the shader program
 
-	// Calculate MVP Matrix 
+	// Calculate MVP Matrix
 	mvpMatrix = projectionMatrix * viewMatrix * modelMatrix;
 
-	// Get the matrix ID 
+	// Get the matrix ID
 	GLuint matrixID = glGetUniformLocation(program.GetID(), "mvp");
 
-	// Update the matrix transform 
+	// Update the matrix transform
 	glUniformMatrix4fv(matrixID, 1, GL_FALSE, &mvpMatrix[0][0]);
 
 	glBindVertexArray(vao);
@@ -142,7 +148,8 @@ void myDisplay() {
 /// <param name="key">Variable storing information about what key was pressed (ASCII)</param>
 /// <param name="x">Variable storing information about the x coordinate for key event</param>
 /// <param name="y">Variable storing informationabout the y coordinate for key event</param>
-void myKeyboard(unsigned char key, int x, int y) {
+void myKeyboard(unsigned char key, int x, int y)
+{
 	// GLUT uses ascii for key events
 	switch (key)
 	{
@@ -151,26 +158,6 @@ void myKeyboard(unsigned char key, int x, int y) {
 		// Exit main loop and clean up resources
 		glutLeaveMainLoop();
 		break;
-	case 112:
-		if (!projection) {
-			projectionMatrix = glm::ortho(
-				-870.0f, 870.0f, -540.0f, 540.0f, 0.0f, 1000.0f
-			);
-			projectionMatrix = glm::scale(projectionMatrix, glm::vec3(1 / cameraPosition.z, 1/ cameraPosition.z, 1 / cameraPosition.z) * 200.0f);
-			projection = true;
-			std::cout << "ortho projection" << std::endl;
-		}
-		else {
-			// PROJECTION MATRIX
-			projectionMatrix = glm::perspective(
-				glm::radians(45.0f),
-				16.0f / 9.0f,
-				0.1f,
-				100.0f
-			);
-			projection = false;
-			std::cout << "perspective projection" << std::endl;
-		}
 	default:
 		break;
 	}
@@ -182,7 +169,8 @@ void myKeyboard(unsigned char key, int x, int y) {
 /// <param name="key">Variable storing information about what key was pressed (ASCII)</param>
 /// <param name="x">Variable storing information about the x coordinate for key event</param>
 /// <param name="y">Variable storing informationabout the y coordinate for key event</param>
-void mySpecialKeyboard(int key, int x, int y) {
+void mySpecialKeyboard(int key, int x, int y)
+{
 	// GLUT uses ascii for key events
 	switch (key)
 	{
@@ -202,24 +190,30 @@ void mySpecialKeyboard(int key, int x, int y) {
 /// <param name="state">Variable storing the state of the mouse key event</param>
 /// <param name="x">Variable storing information about the x coordinate for the mouse key event</param>
 /// <param name="y">Variable storing information about the y coordinate for the mouse key event</param>
-void myMouse(int button, int state, int x, int y) {
-	switch (button) {
+void myMouse(int button, int state, int x, int y)
+{
+	switch (button)
+	{
 	case GLUT_LEFT_BUTTON: // set the camera angle
-		if (state == GLUT_DOWN) {
+		if (state == GLUT_DOWN)
+		{
 			angle_prev_x = (float)x;
 			angle_prev_y = (float)y;
 			leftDown = true;
 		}
-		if (state == GLUT_UP) {
+		if (state == GLUT_UP)
+		{
 			leftDown = false;
 		}
 		break;
 	case GLUT_RIGHT_BUTTON: // set the camera distance
-		if (state == GLUT_DOWN) {
+		if (state == GLUT_DOWN)
+		{
 			camera_distance_prev = (float)y;
 			rightDown = true;
 		}
-		if (state == GLUT_UP) {
+		if (state == GLUT_UP)
+		{
 			rightDown = false;
 		}
 		break;
@@ -233,7 +227,8 @@ void myMouse(int button, int state, int x, int y) {
 /// </summary>
 /// <param name="x">Variable storing information about the x coordinate for mouse motion event</param>
 /// <param name="y">Variable storing information about the y coordinate for mouse motion event</param>
-void myMouseMotion(int x, int y) {
+void myMouseMotion(int x, int y)
+{
 
 	// Variables for storing the current camera angle and current distance
 	current_angle_x = (float)x;
@@ -241,7 +236,8 @@ void myMouseMotion(int x, int y) {
 	current_camera_distance = (float)y;
 
 	// Update Camera angle
-	if (leftDown) {
+	if (leftDown)
+	{
 		// calculate the differential x and y when the mouse moves and store the previous coordinate
 		float dx = current_angle_x - angle_prev_x;
 		float dy = current_angle_y - angle_prev_y;
@@ -260,21 +256,28 @@ void myMouseMotion(int x, int y) {
 	}
 
 	// Update Camera Distance
-	if (rightDown) {
+	if (rightDown)
+	{
 		float dy = 0.0f;
 		dy += current_camera_distance - camera_distance_prev;
 		camera_distance_prev = current_camera_distance;
 		dy *= speed;
-		cameraPosition.z += dy;
+		FOV += dy;
+		if (FOV < 10.0f)
+		{
+			FOV = 10.0f;
+		}
+		if (FOV > 90.0f)
+		{
+			FOV = 90.0f;
+		}
 		matrixTransform();
-
 	}
-
-
 }
 
-// Reshape window function 
-void myReshape(int x, int y) {
+// Reshape window function
+void myReshape(int x, int y)
+{
 }
 
 /// <summary>
@@ -283,7 +286,8 @@ void myReshape(int x, int y) {
 /// <param name="argc"></param>
 /// <param name="argv"></param>
 /// <returns></returns>
-void myIdle() {
+void myIdle()
+{
 
 	// Tell GLUT to redraw in the main loop
 	glutPostRedisplay();
@@ -296,20 +300,21 @@ void myIdle() {
 /// <param name="argc"></param>
 /// <param name="argv">Command line arguments</param>
 /// <returns></returns>
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
 	// GLUT INITIALIZATION
 
 	// Initialize GLUT
 	glutInit(&argc, argv);
 
 	// Create a Window
-	glutInitWindowSize(1920, 1080); // specify width, height of window
-	glutInitWindowPosition(0, 0); // specify the position of the window (x, y) coordinate for center
+	glutInitWindowSize(1920, 1080);							   // specify width, height of window
+	glutInitWindowPosition(0, 0);							   // specify the position of the window (x, y) coordinate for center
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH); // Initialize the display
-	glutCreateWindow("Window Title"); // specify the title of the window
+	glutCreateWindow("Window Title");						   // specify the title of the window
 
 	// REGISTER CALLBACK FUNCTIONS
-	
+
 	// Display callback function
 	glutDisplayFunc(myDisplay);
 
@@ -318,12 +323,11 @@ int main(int argc, char** argv) {
 
 	// GLUT Keyboard Event callback function
 	glutSpecialFunc(mySpecialKeyboard);
-	
 
-	// Mouse event callback function 
+	// Mouse event callback function
 	glutMouseFunc(myMouse);
 
-	// Mouse motion callback function 
+	// Mouse motion callback function
 	glutMotionFunc(myMouseMotion);
 
 	// Idle callback function (used for animation)
@@ -334,7 +338,7 @@ int main(int argc, char** argv) {
 
 	// GLEW INITIALIZATION
 
-	// Initialize the matrices for the rendering and camera 
+	// Initialize the matrices for the rendering and camera
 	matrixInitialize();
 
 	// Initialize GLEW
@@ -357,14 +361,13 @@ int main(int argc, char** argv) {
 		GL_ARRAY_BUFFER,
 		sizeof(cy::Vec3f) * mesh.NV(),
 		&mesh.V(0),
-		GL_STATIC_DRAW
-	);
+		GL_STATIC_DRAW);
 
 	// ASSIGN VERTEX BUFFER OBJECTS TO VERTEX ATTRIBUTES
 	GLuint pos = glGetAttribLocation(program.GetID(), "pos");
 	glEnableVertexAttribArray(pos);
 	glVertexAttribPointer(
-		pos, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
+		pos, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *)0);
 
 	// CREAT THE BOUNDING BOX VIEW FOR THE SCENE DATA
 	boundingBox();
@@ -373,4 +376,3 @@ int main(int argc, char** argv) {
 
 	return 0; // Exit when main loop is done
 }
-
