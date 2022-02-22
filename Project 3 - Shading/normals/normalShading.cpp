@@ -1,44 +1,48 @@
-// Standard Library Headers
+// IO
 #include <iostream>
 
-// Include GLEW
+// GLEW
 #include <GL/glew.h>
 
-// Include FreeGlut
+// FreeGlut
 #include <GL/freeglut.h>
 
-// Include cyCodeBase files
+// cyCodeBase
 #include "cyGL.h"
 #include "cyTriMesh.h"
 
-// Include OpenGL Math Library files
+// OpenGL Math
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 
-// Include the necessary STL library stuff
+// C++ STL
 #include <vector>
 
 // Global variable initializations
-// BACKGROUND COLOR GLOBAL VARIABLE
-float red = 0.0f; // for animating the background
 
-// OBJECT AND MESH DATA VARIABLES
-cy::TriMesh mesh;        // global variable for loading and storing scene data (.obj files)
-cy::GLSLProgram program; // global variable for compiling and binding shader program
-GLuint vao;              // global variable for the vertex array object
-GLuint buffer;           // global variable for the vertex buffer object
-GLuint normalBuffer;     // global variable for the vertex normal object
+// Object and Mesh Data Variables
+cy::TriMesh mesh;          // global variable for loading and storing scene data (.obj files)
+cy::GLSLProgram program;   // global variable for compiling and binding shader program
+GLuint vertexArrayObject;  // global variable for the vertex array object
+GLuint vertexBufferObject; // global variable for the vertex buffer object
+GLuint normalBufferObject; // global variable for the normal buffer object
 
-// CAMERA + MATRIX TRANSFORMATION VARIABLES
+// Speed Variables
+float speed = 0.2f; // global variable for controlling speed of zoom and rotation
+
+// Matrix Transform Variables
+glm::mat4 modelMatrix;      // global variable for representing the model space
+glm::mat4 viewMatrix;       // global variable for representing the camera/view space
+glm::mat4 projectionMatrix; // global variable for representing the world space
+glm::mat4 mvMatrix;         // global variable for model view space
+glm::mat4 mvpMatrix;        // global variable for model view projection space
+glm::mat4 mvnMatrix;        // global variable for model view normal space
+
+// Camera Variables
 glm::vec3 cameraPosition;      // global variable for recording the position of the camera
 glm::vec3 cameraTarget;        // global variable for recording where the camera is pointing in the scene
 glm::vec3 cameraUp;            // global variable for recording
-glm::mat4 modelMatrix;         // global variable for representing the model space
-glm::mat4 viewMatrix;          // global variable for representing the camera/view space
-glm::mat4 projectionMatrix;    // global variable for representing the world space
-glm::mat4 mvpMatrix;           // global variable for representing mapping coordinate spaces
-glm::mat4 inverseModelView;    // global variable for representing the inverse of the model view matrix
 float angle_prev_x;            // global variable for storing previous x angle for yaw
 float angle_prev_y;            // global variable for storing previous y angle for pitch
 float current_angle_x;         // global variable for storing current x value from mouse motion
@@ -46,15 +50,15 @@ float current_angle_y;         // global variable for storing current y value fr
 float current_camera_distance; // global variable for storing current camera distance for zoom
 float camera_distance_prev;    // global variable for storing previous camera distance for zoom
 float yaw = 0.0f;              // global variable for controlling horizontal camera movement
-float pitch = 0.0f;            // global variable for controlling verticial camera movement
+float pitch = 0.0f;            // global variable for controlling vertical camera movement
+float FOV = 45.0f;             // global variable for controlling field of view (zoom)
 
-// MOUSE EVENT VARIABLES (Interaction Booleans and speed)
-float speed = 0.2f;     // global variable for controlling speed of zoom and rotation
+// Mouse Event Variables (Interaction Booleans and speed)
+
 bool leftDown = false;  // global variable for stating whether the camera angle is being set
 bool rightDown = false; // global variable for stating whether the camera distance is being set
-bool projection = false;
 
-// GLOBAL VARIABLES FOR SCENE
+// Scene Variables
 std::vector<cy::Vec3f> triangles;
 std::vector<cy::Vec3f> normals;
 
@@ -82,7 +86,7 @@ void matrixInitialize()
 
     // PROJECTION MATRIX
     projectionMatrix = glm::perspective(
-        glm::radians(45.0f),
+        glm::radians(FOV),
         16.0f / 9.0f,
         0.1f,
         100.0f);
@@ -104,12 +108,21 @@ void boundingBox()
 /// </summary>
 void matrixTransform()
 {
+    // Set up projection view based on the FOV
+    projectionMatrix = glm::perspective(
+        glm::radians(FOV),
+        16.0f / 9.0f,
+        0.1f,
+        100.0f);
+
+    // Set up view based on the current camera information
     viewMatrix = glm::lookAt(
         cameraPosition, // CAMERA POSITION
         cameraTarget,   // and looks at the origin (camera location) CAMERA DIRECTION
         cameraUp        // Head is up (set to 0,-1,0 to look upside-down) // CAMERA RIGHT
     );
 
+    // Transformations for motion
     viewMatrix = glm::translate(viewMatrix, cameraTarget);
     viewMatrix = glm::rotate(viewMatrix, glm::radians(pitch), glm::vec3(1, 0, 0));
     viewMatrix = glm::rotate(viewMatrix, glm::radians(yaw), glm::vec3(0, 0, 1));
@@ -128,22 +141,23 @@ void myDisplay()
     // Render Stuff
     program.Bind(); // Use the shader program
 
-    // Calculate MVP Matrix
+    // Calculate Matrices
+    mvMatrix = viewMatrix * modelMatrix;
     mvpMatrix = projectionMatrix * viewMatrix * modelMatrix;
-
-    // Calculate model view inverse
-    inverseModelView = viewMatrix * modelMatrix;
-    inverseModelView = glm::inverseTranspose(inverseModelView);
+    mvnMatrix = glm::inverseTranspose(mvMatrix);
 
     // Get the matrix ID
-    GLuint matrixID = glGetUniformLocation(program.GetID(), "mvp");
-    GLuint matrixInverseID = glGetUniformLocation(program.GetID(), "mv");
+    GLuint mvpID = glGetUniformLocation(program.GetID(), "mvp");
+    GLuint mvID = glGetUniformLocation(program.GetID(), "mv");
+    GLuint mvnID = glGetUniformLocation(program.GetID(), "mvn");
 
     // Update the matrix transform
-    glUniformMatrix4fv(matrixID, 1, GL_FALSE, &mvpMatrix[0][0]);
-    glUniformMatrix4fv(matrixInverseID, 1, GL_FALSE, &inverseModelView[0][0]);
+    glUniformMatrix4fv(mvID, 1, GL_FALSE, &mvMatrix[0][0]);
+    glUniformMatrix4fv(mvpID, 1, GL_FALSE, &mvpMatrix[0][0]);
+    glUniformMatrix4fv(mvnID, 1, GL_FALSE, &mvnMatrix[0][0]);
 
-    glBindVertexArray(vao);
+    // Bind vertex data to vertices of scene
+    glBindVertexArray(vertexArrayObject);
     glUseProgram(program.GetID());
 
     // Render Data to the Screen
@@ -169,40 +183,6 @@ void myKeyboard(unsigned char key, int x, int y)
         // Exit main loop and clean up resources
         glutLeaveMainLoop();
         break;
-    case 112:
-        if (!projection)
-        {
-            // if (current_camera_distance == 0.0f) {
-            //	projectionMatrix = glm::ortho(
-            //		/*-870.0f, 870.0f, -540.0f, 540.0f, 0.0f, 1000.0f*/
-            //		-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 10.0f
-            //	);
-            // }
-            // else {
-            //	projectionMatrix = glm::ortho(
-            //		-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 100.0f
-            //	);
-            //	projectionMatrix = glm::scale(projectionMatrix, glm::vec3(1 / current_camera_distance, 1/ current_camera_distance, 1 / current_camera_distance));
-            // }
-
-            projectionMatrix = glm::ortho(
-                /*-870.0f, 870.0f, -540.0f, 540.0f, 0.0f, 1000.0f*/
-                -1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 10.0f);
-
-            projection = true;
-            std::cout << "ortho projection" << std::endl;
-        }
-        else
-        {
-            // PROJECTION MATRIX
-            projectionMatrix = glm::perspective(
-                glm::radians(45.0f),
-                16.0f / 9.0f,
-                0.1f,
-                100.0f);
-            projection = false;
-            std::cout << "perspective projection" << std::endl;
-        }
     default:
         break;
     }
@@ -283,31 +263,41 @@ void myMouseMotion(int x, int y)
     // Update Camera angle
     if (leftDown)
     {
-        // calculate the differential x and y when the mouse moves and store the previous coordinate
+        // Calculate the differential x and y when the mouse moves and store the previous coordinate
         float dx = current_angle_x - angle_prev_x;
         float dy = current_angle_y - angle_prev_y;
         angle_prev_x = current_angle_x;
         angle_prev_y = current_angle_y;
 
-        // scale the differential for a smooth transition
+        // Scale the differential for a smooth transition
         dx *= speed;
         dy *= speed;
 
-        // update the yaw and pitch
+        // Set yaw and pitch
         yaw += dx;
         pitch += dy;
 
+        // Update matrix transformations
         matrixTransform();
     }
 
-    // Update Camera Distance
+    // Update Field of View
     if (rightDown)
     {
         float dy = 0.0f;
         dy += current_camera_distance - camera_distance_prev;
         camera_distance_prev = current_camera_distance;
         dy *= speed;
-        cameraPosition.z += dy;
+        FOV += dy;
+        if (FOV < 10.0f)
+        {
+            FOV = 10.0f;
+        }
+        if (FOV > 90.0f)
+        {
+            FOV = 90.0f;
+        }
+        // Update matrix transformations
         matrixTransform();
     }
 }
@@ -318,7 +308,7 @@ void myReshape(int x, int y)
 }
 
 /// <summary>
-/// Function for handling animation events in FreeGlut
+/// Function for handling animation events in FreeGlut and updating the redisplay of buffers
 /// </summary>
 /// <param name="argc"></param>
 /// <param name="argv"></param>
@@ -341,7 +331,7 @@ int main(int argc, char **argv)
 {
     // GLUT INITIALIZATION
 
-    // Intiailize Context
+    // Initialize GLUT Context Version
     glutInitContextVersion(4, 5);
 
     // Initialize GLUT
@@ -355,6 +345,8 @@ int main(int argc, char **argv)
 
     // REGISTER CALLBACK FUNCTIONS
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_LESS);
+    glEnable(GL_CULL_FACE);
 
     // Display callback function
     glutDisplayFunc(myDisplay);
@@ -386,13 +378,13 @@ int main(int argc, char **argv)
     glewInit();
 
     // VERTEX ARRAY OBJECT
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
+    glGenVertexArrays(1, &vertexArrayObject);
+    glBindVertexArray(vertexArrayObject);
 
     // LOAD SCENE
     bool success = mesh.LoadFromFileObj(argv[1]);
 
-    // Load the Faces
+    // Load Mesh Face Data
     for (int i = 0; i < mesh.NF(); i++)
     {
         cy::Vec3f vertex1 = mesh.V(mesh.F(i).v[0]);
@@ -403,7 +395,7 @@ int main(int argc, char **argv)
         triangles.push_back(vertex3);
     }
 
-    // Load the Normals
+    // Load the Normal Face Data
     for (int j = 0; j < mesh.NF(); j++)
     {
         cy::Vec3f normals1 = mesh.VN(mesh.F(j).v[0]);
@@ -414,41 +406,42 @@ int main(int argc, char **argv)
         normals.push_back(normals3);
     }
 
-    // Load the Scene using triangles
-    glGenBuffers(1, &buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    // Shader Compilation
+    bool shader_compile = program.BuildFiles("shader.vert", "shader.frag");
+
+    // VERTEX BUFFER OBJECT
+    glGenBuffers(1, &vertexBufferObject);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
     glBufferData(
         GL_ARRAY_BUFFER,
         sizeof(std::vector<cy::Vec3f>) * triangles.size(),
         &triangles[0],
         GL_STATIC_DRAW);
 
-    // Load Normals
-    glGenBuffers(1, &normalBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
+    // NORMAL BUFFER OBJECT
+    glGenBuffers(1, &normalBufferObject);
+    glBindBuffer(GL_ARRAY_BUFFER, normalBufferObject);
     glBufferData(
         GL_ARRAY_BUFFER,
         sizeof(std::vector<cy::Vec3f>) * normals.size(),
         &normals[0],
         GL_STATIC_DRAW);
 
-    // Shader Compilation
-    bool shader_compile = program.BuildFiles("shader.vert", "shader.frag");
-
     // ASSIGN VERTEX BUFFER OBJECTS TO VERTEX ATTRIBUTES
     GLuint pos = glGetAttribLocation(program.GetID(), "pos");
     glEnableVertexAttribArray(pos);
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
     glVertexAttribPointer(
         pos, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *)0);
 
+    // ASSIGN NORMAL BUFFER OBJECTS TO VERTEX ATTRIBUTES
     GLuint normalPos = glGetAttribLocation(program.GetID(), "normalPos");
     glEnableVertexAttribArray(normalPos);
-    glBindBuffer(GL_ARRAY_BUFFER, normalBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, normalBufferObject);
     glVertexAttribPointer(
         normalPos, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *)0);
 
-    // CREAT THE BOUNDING BOX VIEW FOR THE SCENE DATA
+    // CREATE THE BOUNDING BOX VIEW FOR THE SCENE DATA
     boundingBox();
 
     glutMainLoop(); // Call main loop
