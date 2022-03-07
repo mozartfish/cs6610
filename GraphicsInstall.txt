@@ -1,0 +1,24 @@
+Include Directories 
+$(SolutionDir)libraries\glew\include
+$(SolutionDir)libraries\glm
+$(SolutionDir)libraries\cyCodeBase
+$(SolutionDir)libraries\freeglut\include
+
+Library Directories 
+$(SolutionDir)libraries\glew\lib\Release\$(Platform)
+$(SolutionDir)libraries\freeglut\lib\$(Platform)
+$(SolutionDir)\libraries\glm$(Platform)
+$(SolutionDir)\libraries\cyCodeBase$(Platform)
+
+Additional #using Directories 
+../libraries/glm
+../libraries/cyCodeBase
+
+Linker Input 
+freeglut.lib
+glew32.lib
+opengl32.lib
+
+Build Events Post Build 
+copy "$(SolutionDir)libraries\freeglut\bin\$(Platform)\freeglut.dll" "$(OutDir)"
+copy "$(SolutionDir)libraries\glew\bin\Release\$(Platform)\glew32.dll" "$(OutDir)"
