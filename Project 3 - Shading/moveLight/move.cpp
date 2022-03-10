@@ -1,100 +1,124 @@
+// C++ Libraries
 #include <iostream>
+#include <vector>
+
+// GLEW
 #include <GL/glew.h>
+
+// FREE GLUT
 #include <GL/freeglut.h>
+
+// CYCODE
 #include "cyGL.h"
 #include "cyTriMesh.h"
+
+// GLM
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtx/string_cast.hpp>
-#include <vector>
+// #include "../libraries/glm/gtc/matrix_transform.hpp"
+// #include "../libraries/glm/gtx/transform.hpp"
+// #include "../libraries/glm/gtc/matrix_inverse.hpp"
+// #include "../libraries/glm/gtx/string_cast.hpp"
 
-// Global variable initializations
-// Object and Mesh Data Variables
-cy::TriMesh mesh;          // global variable for loading and storing scene data (.obj files)
-cy::GLSLProgram program;   // global variable for compiling and binding shader program
-GLuint vertexArrayObject;  // global variable for the vertex array object
-GLuint vertexBufferObject; // global variable for the vertex buffer object
-GLuint normalBufferObject; // global variable for the normal buffer object
+// Global Variable Initialization
+cy::TriMesh mesh;                   // global variable for storing the scene data
+cy::GLSLProgram program;            // global variable for compiling and running shader program
+GLuint vertexArrayObject;           // global variable for storing vertex array data
+GLuint vertexBufferObject;          // global variable for strogin vertex buffer data
+GLuint normalBufferObject;          // global variable for storing normal buffer data
+GLuint diffuseTextureBufferObject;  // global variable for storing diffuse texture buffer data
+GLuint specularTextureBufferObject; // global variable for storing specular texture buffer data
 
-// Speed Variables
-float speed = 0.2f; // global variable for controlling speed of zoom and rotation
+// Speed Variable - for controlling refresh/rendering rate
+float speed = 0.2f;
 
 // Matrix Transform Variables
-// CAMERA TRANSFORM VARIABLES
-glm::mat4 modelMatrix;      // global variable for representing the teapot model space
-glm::mat4 viewMatrix;       // global variable for representing the camera/view space
-glm::mat4 projectionMatrix; // global variable for representing the world space
-glm::mat4 mvMatrix;         // global variable for model view space
-glm::mat4 mvpMatrix;        // global variable for model view projection space
-glm::mat4 mvnMatrix;        // global variable for model view normal space
+// Camera Transform Variables
+glm::mat4 modelMatrix;      // global variable for representing the model space with respect to the camera
+glm::mat4 viewMatrix;       // global variable for representing the view space with respect to the camera
+glm::mat4 projectionMatrix; // global variable for representing the real world space with respect to the camera
+glm::mat4 mvMatrix;         // global variable for representing the model-view space
+glm::mat4 mvpMatrix;        // global variable for representing the model-view-projection space
+glm::mat4 mvnMatrix;        // global variable for representing the model-view-normal space
+// Light Transform Variables
+glm::mat4 lightModelMatrix; // global variable for representing the model space with respect to the light
+glm::mat4 lightViewMatrix;  // global variable for representing the view space with respect to the light
+glm::mat4 lightMVMatrix;    // global variable for representing the model-view space with respect to the light
 
 // Camera Variables
-glm::vec3 cameraPosition;      // global variable for recording the position of the camera
-glm::vec3 cameraTarget;        // global variable for recording where the camera is pointing in the scene
-glm::vec3 cameraUp;            // global variable for recording the camera up/down status
-float angle_prev_x;            // global variable for storing previous x angle for yaw
-float angle_prev_y;            // global variable for storing previous y angle for pitch
-float current_angle_x;         // global variable for storing current x value from mouse motion
-float current_angle_y;         // global variable for storing current y value from mouse motion
-float current_camera_distance; // global variable for storing current camera distance for zoom
-float camera_distance_prev;    // global variable for storing previous camera distance for zoom
-float yaw = 0.0f;              // global variable for controlling horizontal camera movement
-float pitch = 0.0f;            // global variable for controlling vertical camera movement
-float FOV = 45.0f;             // global variable for controlling field of view (zoom)
-
-// LIGHT TRANSFORM VARIABLES
-glm::mat4 lightModelMatrix; // global variable for representing the light model space
-glm::mat4 lightViewMatrix;  // global variable for light view space
-glm::mat4 lightMVMatrix;    // global variable for light model view space
-
-// Light Variables
-// glm::vec4 lightPosition = glm::vec4(107.780487f, 83.130577f, 0.0f, 1.0f);
-glm::vec4 lightPosition;
-glm::vec3 lightViewPosition; // global variable for recording the position of the camera
-glm::vec3 lightTarget;       // global variable for recording where the camera is pointing in the scene
-glm::vec3 lightUp;           // global variable for recording the camera up/down status
+// Camera Vectors
+glm::vec3 cameraPosition; // global variable for representing the camera location
+glm::vec3 cameraTarget;   // global variable for representing where the camera is pointing at
+glm::vec3 cameraUp;       // global variable for representing whether the camera is pointing up or down
+// Camera Previous State Variables
+float angle_prev_x;
+float angle_prev_y;
+float camera_distance_prev;
+// Camera Current State Variables
+float current_angle_x;
+float current_angle_y;
+float current_camera_distance;
+// Camera Default Settings
+float yaw = 0.0f;   // global variable for controlling horiziontal camera movement
+float pitch = 0.0f; // global variable for controlling vertical camera movement
+float FOV = 45.0f;  // global variable for controlling field of view (zoom)
 
 // Light Variables
-float light_angle_prev_x;    // global variable for storing previous x angle for yaw
-float light_angle_prev_y;    // global variable for storing previous y angle for pitch
-float light_current_angle_x; // global variable for storing current x value from mouse motion
-float light_current_angle_y; // global variable for storing current y value from mouse motion
-float light_yaw = 0.0f;      // global variable for controlling horizontal camera movement
-float light_pitch = 0.0f;    // global variable for controlling vertical camera movement
+// Light Vectors
+glm::vec4 lightPosition;     // global variable for representing the light position for light movement
+glm::vec3 lightViewPosition; // global variable for representing the light location
+glm::vec3 lightTarget;       // global variable for representing
+glm::vec3 lightUp;           // global variable for representing where whether the light is pointing up or down
+// Light Previous State Variables
+float light_angle_prev_x;
+float light_angle_prev_y;
+// Light Current State Variables
+float light_current_angle_x;
+float light_current_angle_y;
+// Light Default Settings
+float light_yaw = 0.0f;   // global variabe for controlling horizontal light movement
+float light_pitch = 0.0f; // global variable for controlling vertical light movement
 
-// Mouse Event Variables (Interaction Booleans and speed
-bool leftDown = false;  // global variable for stating whether the camera angle is being set
-bool rightDown = false; // global variable for stating whether the camera distance is being set
-bool ctrlDown = false;  // global variable for stating whether the light angle is being set
+// Mouse Event Variables (User Interaction Controls)
+bool leftDown = false;
+bool rightDown = false;
+bool ctrlDown = false;
 
 // Scene Variables
-std::vector<cy::Vec3f> triangles;
-std::vector<cy::Vec3f> normals;
+std::vector<cy::Vec3f> triangles; // global variable for storing triangle faces from the scene
+std::vector<cy::Vec3f> normals;   // global variable for storing normal faces from the scene
 
-// CALLBACK FUNCTIONS AND HELPER FUNCTIONS
+// Texture Coordinates
+std::vector<cy::Vec2f> diffuseTextureCoords;
+std::vector<cy::Vec2f> specularTextureCoords;
+
+// Texture Data
+// Diffuse Texture
+std::vector<unsigned char> diffuseTexture;
+unsigned diffuseWidth, diffuseHeight;
+// Specular Texture
+std::vector<unsigned char> specularTexture;
+unsigned specularWidth, specularHeight;
+// Initialization Functions
 
 /// <summary>
-/// Initialize Camera Variables
+/// Initialize the scene camera
 /// </summary>
-void cameraInitialize()
+void initializeCamera()
 {
-    // CAMERA MATRIX INTITIALIZATIONS
-    // CAMERA MODEL MATRIX
     modelMatrix = glm::mat4(1.0f);
 
-    // CAMERA VIEW MATRIX
     cameraPosition = glm::vec3(0.0f, -2.0f, 1.0f);
     cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
     cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-
     viewMatrix = glm::lookAt(
         cameraPosition, // CAMERA POSITION
         cameraTarget,   // and looks at the origin (camera location) CAMERA DIRECTION
         cameraUp        // Head is up (set to 0,-1,0 to look upside-down) // CAMERA RIGHT
     );
 
-    // CAMERA PROJECTION MATRIX
     projectionMatrix = glm::perspective(
         glm::radians(FOV),
         16.0f / 9.0f,
@@ -103,22 +127,15 @@ void cameraInitialize()
 }
 
 /// <summary>
-/// Initialize lighting variables
+/// Initialize the scene lighting
 /// </summary>
-void lightInitialize()
+void initializeLight()
 {
-
-    // LIGHT MATRIX INITIALIZATIONS
-
-    // Light Position
-    // LIGHT MODEL MATRIX
     lightModelMatrix = glm::mat4(1.0f);
 
-    // LIGHT VIEW MATRIX
     lightViewPosition = glm::vec3(70.0f, 50.0f, 0.0f);
     lightTarget = glm::vec3(0.0f, 0.0f, 0.0f);
     lightUp = glm::vec3(0.0f, 1.0f, 0.0f);
-
     lightViewMatrix = glm::lookAt(
         lightViewPosition, // LIGHT POSITION
         lightTarget,       // and looks at the origin (camera location) LIGHT DIRECTION
@@ -127,7 +144,7 @@ void lightInitialize()
 }
 
 /// <summary>
-/// Function for computing the bounding box for centering the rotation center for objects in the scene
+/// Define Bounding Box for rotation about center for scene
 /// </summary>
 void boundingBox()
 {
@@ -136,38 +153,81 @@ void boundingBox()
     cy::Vec3f boundBoxMax = mesh.GetBoundMax();
     float zMidpoint = -0.05 * (boundBoxMax.z + boundBoxMin.z) / 2;
     modelMatrix = glm::translate(modelMatrix, glm::vec3(0, 0, zMidpoint));
-    // lightModelMatrix = modelMatrix;
 }
 
+// Transform Functions
+
 /// <summary>
-/// Function for computing the camera motion in the scene
+/// Camera motion in the horizontal and vertical directions
 /// </summary>
-void cameraTransform()
+void transformCamera()
 {
-    // Set up projection view based on the FOV
     projectionMatrix = glm::perspective(
         glm::radians(FOV),
         16.0f / 9.0f,
         0.1f,
         100.0f);
 
-    // Set up view based on the current camera information
     viewMatrix = glm::lookAt(
         cameraPosition, // CAMERA POSITION
         cameraTarget,   // and looks at the origin (camera location) CAMERA DIRECTION
         cameraUp        // Head is up (set to 0,-1,0 to look upside-down) // CAMERA RIGHT
     );
 
-    // Transformations for motion
     viewMatrix = glm::translate(viewMatrix, cameraTarget);
     viewMatrix = glm::rotate(viewMatrix, glm::radians(pitch), glm::vec3(1, 0, 0));
     viewMatrix = glm::rotate(viewMatrix, glm::radians(yaw), glm::vec3(0, 0, 1));
 }
 
+// Callback Functions
+
 /// <summary>
-/// Function for computing the light motion in the scene
+/// Render Scene data to screen
 /// </summary>
-void lightTransform()
+void myDisplay()
+{
+    // OpenGL Draw Calls Here
+    // Clear the viewport
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Compute the different matrices and vectors for rendering the scene
+    mvMatrix = viewMatrix * modelMatrix;
+    lightPosition = glm::vec4(107.780487f, 83.130577f, 0.0f, 1.0f);
+    lightMVMatrix = lightViewMatrix * lightModelMatrix;
+    lightPosition = lightMVMatrix * lightPosition;
+    mvpMatrix = projectionMatrix * viewMatrix * modelMatrix;
+    mvnMatrix = glm::inverseTranspose(mvMatrix);
+
+    // Get ID values for passing to shader code to render scene
+    GLuint mvpID = glGetUniformLocation(program.GetID(), "mvp");
+    GLuint mvID = glGetUniformLocation(program.GetID(), "mv");
+    GLuint lightPosID = glGetUniformLocation(program.GetID(), "lightPos");
+    GLuint mvnID = glGetUniformLocation(program.GetID(), "mvn");
+
+    // Store matrix and vector data as a uniform data variable for use in shader code
+    glUniformMatrix4fv(mvID, 1, GL_FALSE, &mvMatrix[0][0]);
+    glUniformMatrix4fv(mvpID, 1, GL_FALSE, &mvpMatrix[0][0]);
+    glUniformMatrix4fv(mvnID, 1, GL_FALSE, &mvnMatrix[0][0]);
+    glUniform3f(lightPosID, lightPosition.x, lightPosition.y, lightPosition.z);
+
+    // Bind vertex data to vertices of scene
+    glBindVertexArray(vertexArrayObject);
+
+    // Apply Shaders to the Scene
+    /*glUseProgram(program.GetID());*/
+    program.Bind();
+
+    // Render Data to the Screen
+    // glDrawArrays(GL_POINTS, 0, sizeof(cy::Vec3f) * mesh.NV()); // render points
+    glDrawArrays(GL_TRIANGLES, 0, triangles.size());
+
+    glutSwapBuffers(); // Swap buffers (front and back buffers) to give most up to date rendering of scene
+}
+
+/// <summary>
+/// Light motion in the horizontal and vertical directions
+/// </summary>
+void transformLight()
 {
     lightViewMatrix = glm::lookAt(
         lightViewPosition, // CAMERA POSITION
@@ -181,105 +241,57 @@ void lightTransform()
 }
 
 /// <summary>
-/// Function for rendering to the display
+/// Function for handling non-special FreeGlut key events
 /// </summary>
-void myDisplay()
-{
-    // OpenGLdraw calls here
-
-    // Clear the viewport
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // Render Stuff
-    program.Bind(); // Use the shader program
-
-    // Calculate Matrices
-    mvMatrix = viewMatrix * modelMatrix;
-    lightPosition = glm::vec4(107.780487f, 83.130577f, 0.0f, 1.0f);
-    lightMVMatrix = lightViewMatrix * lightModelMatrix;
-    lightPosition = lightMVMatrix * lightPosition;
-    mvpMatrix = projectionMatrix * viewMatrix * modelMatrix;
-    mvnMatrix = glm::inverseTranspose(mvMatrix);
-
-    // Get the matrix ID
-    GLuint mvpID = glGetUniformLocation(program.GetID(), "mvp");
-    GLuint mvID = glGetUniformLocation(program.GetID(), "mv");
-    GLuint lightPosID = glGetUniformLocation(program.GetID(), "lightPos");
-    GLuint mvnID = glGetUniformLocation(program.GetID(), "mvn");
-    GLuint texID;
-
-    // Update the matrix transform
-    glUniformMatrix4fv(mvID, 1, GL_FALSE, &mvMatrix[0][0]);
-    glUniformMatrix4fv(mvpID, 1, GL_FALSE, &mvpMatrix[0][0]);
-    glUniformMatrix4fv(mvnID, 1, GL_FALSE, &mvnMatrix[0][0]);
-    glUniform3f(lightPosID, lightPosition.x, lightPosition.y, lightPosition.z);
-    // Bind vertex data to vertices of scene
-    glBindVertexArray(vertexArrayObject);
-    glUseProgram(program.GetID());
-
-    // Render Data to the Screen
-    glDrawArrays(GL_TRIANGLES, 0, triangles.size());
-
-    // Swap buffers
-    glutSwapBuffers();
-}
-
-/// <summary>
-/// Function for handling keyboard in put
-/// </summary>
-/// <param name="key">Variable storing information about what key was pressed (ASCII)</param>
-/// <param name="x">Variable storing information about the x coordinate for key event</param>
-/// <param name="y">Variable storing informationabout the y coordinate for key event</param>
+/// <param name="key">Key selected by user</param>
+/// <param name="x">Screen x-coordinate when key is pressed by user</param>
+/// <param name="y">Screen y-coordinate when key is pressed by user</param>
 void myKeyboard(unsigned char key, int x, int y)
 {
-
     // GLUT uses ascii for key events
     switch (key)
     {
-        // escape key
-    case 27:
-        // Exit main loop and clean up resources
-        glutLeaveMainLoop();
+    case 27:                 // escape key
+        glutLeaveMainLoop(); // Exit main loop and clean up resources
         break;
     default:
         break;
     }
     return;
 }
+
 /// <summary>
-/// Function for handling keyboard in put
+/// Function for handling function key events with FreeGlut
+/// Supports recompiling shaders with f-6
 /// </summary>
-/// <param name="key">Variable storing information about what key was pressed (ASCII)</param>
-/// <param name="x">Variable storing information about the x coordinate for key event</param>
-/// <param name="y">Variable storing informationabout the y coordinate for key event</param>
+/// <param name="key">FreeGlut Special Key pressed by user</param>
+/// <param name="x">Screen x-coordinate when key is pressed by user</param>
+/// <param name="y">Screen y-coordinate when key is pressed by user</param>
 void mySpecialKeyboard(int key, int x, int y)
 {
     // GLUT uses ascii for key events
     switch (key)
     {
-        // F6 - Recompile Shaders
-    case GLUT_KEY_F6:
-        // Recompile Shaders
+    case GLUT_KEY_F6: // Recompile Shaders
         bool shader_recompile = program.BuildFiles("shader.vert", "shader.frag");
         break;
     }
-
     return;
 }
 
 /// <summary>
-/// Function for handling mouse key events
+/// Mouse Control definitions for camera angle, light angle and zoom (Field-Of-View)
 /// </summary>
-/// <param name="button">Variable storing which mouse key was pressed</param>
-/// <param name="state">Variable storing the state of the mouse key event</param>
-/// <param name="x">Variable storing information about the x coordinate for the mouse key event</param>
-/// <param name="y">Variable storing information about the y coordinate for the mouse key event</param>
+/// <param name="button">button selected by user</param>
+/// <param name="state">flag indicating whether a button has been pressed down or lifted</param>
+/// <param name="x">Screen x-coordinate of mouse location when a button is clicked</param>
+/// <param name="y">Screen y-coordinate of mouse location when a button is clicked</param>
 void myMouse(int button, int state, int x, int y)
 {
-    int mod;
+    int mod; // variable for storing GLUT Modifier State
     switch (button)
     {
-    case GLUT_LEFT_BUTTON: // set the camera angle
+    case GLUT_LEFT_BUTTON: // set the camera angle / light angle
         if (state == GLUT_DOWN)
         {
             mod = glutGetModifiers();
@@ -320,13 +332,12 @@ void myMouse(int button, int state, int x, int y)
 }
 
 /// <summary>
-/// Function for handling mouse motion events
+/// Camera Angle, Light Angle and Field-Of-View calculations based on mouse motion
 /// </summary>
-/// <param name="x">Variable storing information about the x coordinate for mouse motion event</param>
-/// <param name="y">Variable storing information about the y coordinate for mouse motion event</param>
+/// <param name="x">Screen x-coordinate for where mouse is located</param>
+/// <param name="y">Screen y-coordinate for where mouse is located</param>
 void myMouseMotion(int x, int y)
 {
-
     // Variables for storing the current camera angle and current distance
     current_angle_x = (float)x;
     current_angle_y = (float)y;
@@ -335,7 +346,6 @@ void myMouseMotion(int x, int y)
     light_current_angle_y = (float)y;
 
     // Update Camera angle
-    /*  if (leftDown == true && ctrlDown == false)*/
     if (leftDown == true && ctrlDown == false)
     {
         // Calculate the differential x and y when the mouse moves and store the previous coordinate
@@ -352,13 +362,12 @@ void myMouseMotion(int x, int y)
         yaw += dx;
         pitch += dy;
 
-        // Update matrix transformations
-        cameraTransform();
+        // Update Camera View
+        transformCamera();
     }
 
     // Update Light Angle
     if (leftDown == true && ctrlDown == true)
-    // if (leftDown == true)
     {
         float dx = light_current_angle_x - light_angle_prev_x;
         float dy = light_current_angle_y - light_angle_prev_y;
@@ -373,8 +382,8 @@ void myMouseMotion(int x, int y)
         light_yaw += dx;
         light_pitch += dy;
 
-        // Call the Light matrix transform function
-        lightTransform();
+        // Update Scene Lighting
+        transformLight();
     }
 
     // Update Field of View
@@ -391,99 +400,58 @@ void myMouseMotion(int x, int y)
         }
         if (FOV > 90.0f)
         {
+
             FOV = 90.0f;
         }
-        // Update matrix transformations
-        cameraTransform();
+        // Update Camera View
+        transformCamera();
     }
 }
 
-// Reshape window function
-void myReshape(int x, int y)
-{
-}
-
 /// <summary>
-/// Function for handling animation events in FreeGlut and updating the redisplay of buffers
+/// Animation and refresh rate for rendering
 /// </summary>
-/// <param name="argc"></param>
-/// <param name="argv"></param>
-/// <returns></returns>
 void myIdle()
 {
-
     // Tell GLUT to redraw in the main loop
     glutPostRedisplay();
 }
 
-/// <summary>
-/// The main function that calls the initialization functions and loads in the scene data, command line arguments
-/// and calls functions to render stuff
-/// </summary>
-/// <param name="argc"></param>
-/// <param name="argv">Command line arguments</param>
-/// <returns></returns>
+using namespace std;
 int main(int argc, char **argv)
 {
-    // GLUT INITIALIZATION
-
-    // Initialize GLUT Context Version
-    glutInitContextVersion(4, 5);
-
-    // Initialize GLUT
-    glutInit(&argc, argv);
+    // GLUT Initialization
+    glutInitContextVersion(4, 5); // Initialize GLUT Context Version
+    glutInit(&argc, argv);        // Initialize GLUT
 
     // Create a Window
     glutInitWindowSize(1920, 1080);                            // specify width, height of window
     glutInitWindowPosition(0, 0);                              // specify the position of the window (x, y) coordinate for center
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH); // Initialize the display
-    glutCreateWindow("Window Title");                          // specify the title of the window
-
-    // REGISTER CALLBACK FUNCTIONS
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_LESS);
-    glEnable(GL_CULL_FACE);
-
-    // Display callback function
-    glutDisplayFunc(myDisplay);
-
-    // Keyboard event callback function
-    glutKeyboardFunc(myKeyboard);
-
-    // GLUT Keyboard Event callback function
-    glutSpecialFunc(mySpecialKeyboard);
-
-    // Mouse event callback function
-    glutMouseFunc(myMouse);
-
-    // Mouse motion callback function
-    glutMotionFunc(myMouseMotion);
-
-    // Idle callback function (used for animation)
-    glutIdleFunc(myIdle);
-
-    // OpenGL INITIALIZATION
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Set the background color
-
-    // GLEW INITIALIZATION
-
-    // Initialize the matrices for the rendering and camera
-    cameraInitialize();
-
-    // Initialize Lighting
-    lightInitialize();
+    glutCreateWindow("Window Title");
 
     // Initialize GLEW
     glewInit();
 
-    // VERTEX ARRAY OBJECT
-    glGenVertexArrays(1, &vertexArrayObject);
-    glBindVertexArray(vertexArrayObject);
+    // Specify OpenGL Settings
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_LESS);
+    glEnable(GL_CULL_FACE);
 
-    // LOAD SCENE
-    bool success = mesh.LoadFromFileObj(argv[1]);
+    // Callback Functions
+    glutDisplayFunc(myDisplay);         // rendering callback function
+    glutKeyboardFunc(myKeyboard);       // keyboard callback function
+    glutSpecialFunc(mySpecialKeyboard); // special keyboard callback function
+    glutMouseFunc(myMouse);             // mouse click event callback function
+    glutMotionFunc(myMouseMotion);      // mouse motion callback function
+    glutIdleFunc(myIdle);               // IDLE callback function (for animation)
 
-    // Load Mesh Face Data
+    // Initialize Scene
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);         // Clear the previous color and initialize background to black
+    initializeCamera();                           // initialize camera
+    initializeLight();                            // initialize scene lighting
+    bool success = mesh.LoadFromFileObj(argv[1]); // Load scene from .obj files
+    // Load Triangles
     for (int i = 0; i < mesh.NF(); i++)
     {
         cy::Vec3f vertex1 = mesh.V(mesh.F(i).v[0]);
@@ -493,22 +461,23 @@ int main(int argc, char **argv)
         triangles.push_back(vertex2);
         triangles.push_back(vertex3);
     }
-
-    // Load the Normal Face Data
+    // Load Normals
     for (int j = 0; j < mesh.NF(); j++)
     {
-        cy::Vec3f normals1 = mesh.VN(mesh.F(j).v[0]);
-        cy::Vec3f normals2 = mesh.VN(mesh.F(j).v[1]);
-        cy::Vec3f normals3 = mesh.VN(mesh.F(j).v[2]);
+        cy::Vec3f normals1 = mesh.VN(mesh.FN(j).v[0]);
+        cy::Vec3f normals2 = mesh.VN(mesh.FN(j).v[1]);
+        cy::Vec3f normals3 = mesh.VN(mesh.FN(j).v[2]);
         normals.push_back(normals1);
         normals.push_back(normals2);
         normals.push_back(normals3);
     }
 
-    // Shader Compilation
-    bool shader_compile = program.BuildFiles("shader.vert", "shader.frag");
+    // Vertex Array Object
+    glGenVertexArrays(1, &vertexArrayObject);
+    glBindVertexArray(vertexArrayObject);
 
-    // VERTEX BUFFER OBJECT
+    // Create Buffers
+    // Vertex Buffer
     glGenBuffers(1, &vertexBufferObject);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
     glBufferData(
@@ -517,7 +486,7 @@ int main(int argc, char **argv)
         &triangles[0],
         GL_STATIC_DRAW);
 
-    // NORMAL BUFFER OBJECT
+    // Normal Buffer
     glGenBuffers(1, &normalBufferObject);
     glBindBuffer(GL_ARRAY_BUFFER, normalBufferObject);
     glBufferData(
@@ -525,25 +494,28 @@ int main(int argc, char **argv)
         sizeof(std::vector<cy::Vec3f>) * normals.size(),
         &normals[0],
         GL_STATIC_DRAW);
+    // Create Textures
+    // Compile Shaders
+    bool shader_compile = program.BuildFiles("shader.vert", "shader.frag");
 
-    // ASSIGN VERTEX BUFFER OBJECTS TO VERTEX ATTRIBUTES
+    // Assign Vertex Buffer Objects to Vertex Attributes
     GLuint pos = glGetAttribLocation(program.GetID(), "pos");
     glEnableVertexAttribArray(pos);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
     glVertexAttribPointer(
         pos, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *)0);
 
-    // ASSIGN NORMAL BUFFER OBJECTS TO VERTEX ATTRIBUTES
+    // Assign Normal Buffer Objects to Vertex Attributes
     GLuint normalPos = glGetAttribLocation(program.GetID(), "normalPos");
     glEnableVertexAttribArray(normalPos);
     glBindBuffer(GL_ARRAY_BUFFER, normalBufferObject);
     glVertexAttribPointer(
         normalPos, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *)0);
 
-    // CREATE THE BOUNDING BOX VIEW FOR THE SCENE DATA
+    // Bounding Box
     boundingBox();
 
-    glutMainLoop(); // Call main loop
-
-    return 0; // Exit when main loop is done
+    // Set up rendering for the scene
+    glutMainLoop(); // Call main loop for rendering
+    return 0;       // Exit when main loop is done
 }

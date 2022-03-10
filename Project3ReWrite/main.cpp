@@ -368,7 +368,7 @@ void myMouseMotion(int x, int y)
         yaw += dx;
         pitch += dy;
 
-        // Update Camera View
+        // Update matrix transformations
         transformCamera();
     }
 
@@ -388,7 +388,7 @@ void myMouseMotion(int x, int y)
         light_yaw += dx;
         light_pitch += dy;
 
-        // Update Scene Lighting
+        // Call the Light matrix transform function
         transformLight();
     }
 
@@ -406,10 +406,9 @@ void myMouseMotion(int x, int y)
         }
         if (FOV > 90.0f)
         {
-
             FOV = 90.0f;
         }
-        // Update Camera View
+        // Update matrix transformations
         transformCamera();
     }
 }
@@ -422,52 +421,10 @@ void myIdle()
     // Tell GLUT to redraw in the main loop
     glutPostRedisplay();
 }
-
 using namespace std;
 int main(int argc, char **argv)
 {
-    // Initialize GLUT Context Version
-    glutInitContextVersion(4, 5);
-
-    // Initialize GLUT
-    glutInit(&argc, argv);
-
-    // Create a Window
-    glutInitWindowSize(1920, 1080);                            // specify width, height of window
-    glutInitWindowPosition(0, 0);                              // specify the position of the window (x, y) coordinate for center
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH); // Initialize the display
-    glutCreateWindow("Window Title");                          // specify the title of the window
-
-    // REGISTER CALLBACK FUNCTIONS
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_LESS);
-    glEnable(GL_CULL_FACE);
-
-    // Display callback function
-    glutDisplayFunc(myDisplay);
-
-    // Keyboard event callback function
-    glutKeyboardFunc(myKeyboard);
-
-    // GLUT Keyboard Event callback function
-    glutSpecialFunc(mySpecialKeyboard);
-
-    // Mouse event callback function
-    glutMouseFunc(myMouse);
-
-    // Mouse motion callback function
-    glutMotionFunc(myMouseMotion);
-
-    // Idle callback function (used for animation)
-    glutIdleFunc(myIdle);
-
-    // Initialize Functions
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Clear the previous color and initialize background to black
-    initializeCamera();                   // initialize camera
-    initializeLight();                    // initialize scene lighting
-    glewInit();                           // initialize GLEW
-
-    // Set up Vertex Array Data
+   // Set up Vertex Array Data
     glGenVertexArrays(1, &vertexArrayObject);
     glBindVertexArray(vertexArrayObject);
 
@@ -501,12 +458,12 @@ int main(int argc, char **argv)
     GLuint pos = glGetAttribLocation(program.GetID(), "pos");
     glEnableVertexAttribArray(pos);
     glVertexAttribPointer(
-        pos, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *)0);
+        pos, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
 
     // Set up bounding box for the scene for rotations about the center
     boundingBox();
 
     // Set up rendering for the scene
     glutMainLoop(); // Call main loop for rendering
-    return 0;       // Exit when main loop is done
+    return 0; // Exit when main loop is done
 }

@@ -487,8 +487,6 @@ int main(int argc, char **argv)
     // OpenGL INITIALIZATION
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Set the background color
 
-    // GLEW INITIALIZATION
-
     // Initialize the matrices for the rendering and camera
     cameraInitialize();
 

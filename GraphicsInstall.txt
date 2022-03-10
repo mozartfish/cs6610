@@ -1,3 +1,9 @@
+C++ STD 17
+
+Configurations: All Configurations
+Platforms: All Platforms
+
+
 Include Directories 
 $(SolutionDir)libraries\glew\include
 $(SolutionDir)libraries\glm
