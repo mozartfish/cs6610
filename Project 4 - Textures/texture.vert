@@ -3,11 +3,13 @@
 layout(location = 0) in vec3 pos;
 layout(location = 1) in vec3 normalPos;
 layout(location = 2) in vec2 txc;
+layout(location = 3) in vec2 sptxc;
 
 out vec3 normalVector;
 out vec3 lightPosVector;
 out vec4 intersect;
 out vec2 texCoord;
+out vec2 sptexCoord;
 
 uniform mat4 mvp;
 uniform mat4 mvn;
@@ -22,4 +24,5 @@ void main()
 	intersect = mv * vec4(pos, 1);
 	lightPosVector = lightPos;
 	texCoord = txc;
+	sptexCoord = sptxc;
 }
