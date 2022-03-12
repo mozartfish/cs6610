@@ -124,22 +124,22 @@ unsigned specularWidth, specularHeight;
 /// </summary>
 void initializeCamera()
 {
-    modelMatrix = glm::mat4(1.0f);
+	modelMatrix = glm::mat4(1.0f);
 
-    cameraPosition = glm::vec3(0.0f, -2.0f, 1.0f);
-    cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-    cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-    viewMatrix = glm::lookAt(
-        cameraPosition, // CAMERA POSITION
-        cameraTarget,   // and looks at the origin (camera location) CAMERA DIRECTION
-        cameraUp        // Head is up (set to 0,-1,0 to look upside-down) // CAMERA RIGHT
-    );
+	cameraPosition = glm::vec3(0.0f, -2.0f, 1.0f);
+	cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+	cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+	viewMatrix = glm::lookAt(
+		cameraPosition, // CAMERA POSITION
+		cameraTarget,   // and looks at the origin (camera location) CAMERA DIRECTION
+		cameraUp        // Head is up (set to 0,-1,0 to look upside-down) // CAMERA RIGHT
+	);
 
-    projectionMatrix = glm::perspective(
-        glm::radians(FOV),
-        16.0f / 9.0f,
-        0.1f,
-        100.0f);
+	projectionMatrix = glm::perspective(
+		glm::radians(FOV),
+		16.0f / 9.0f,
+		0.1f,
+		100.0f);
 }
 
 /// <summary>
@@ -147,16 +147,16 @@ void initializeCamera()
 /// </summary>
 void initializeLight()
 {
-    lightModelMatrix = glm::mat4(1.0f);
+	lightModelMatrix = glm::mat4(1.0f);
 
-    lightViewPosition = glm::vec3(70.0f, 50.0f, 0.0f);
-    lightTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-    lightUp = glm::vec3(0.0f, 1.0f, 0.0f);
-    lightViewMatrix = glm::lookAt(
-        lightViewPosition, // LIGHT POSITION
-        lightTarget,       // and looks at the origin (camera location) LIGHT DIRECTION
-        lightUp            // Head is up (set to 0,-1,0 to look upside-down) // LIGHT RIGHT
-    );
+	lightViewPosition = glm::vec3(70.0f, 50.0f, 0.0f);
+	lightTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+	lightUp = glm::vec3(0.0f, 1.0f, 0.0f);
+	lightViewMatrix = glm::lookAt(
+		lightViewPosition, // LIGHT POSITION
+		lightTarget,       // and looks at the origin (camera location) LIGHT DIRECTION
+		lightUp            // Head is up (set to 0,-1,0 to look upside-down) // LIGHT RIGHT
+	);
 }
 
 /// <summary>
@@ -164,11 +164,11 @@ void initializeLight()
 /// </summary>
 void boundingBox()
 {
-    mesh.ComputeBoundingBox();
-    cy::Vec3f boundBoxMin = mesh.GetBoundMin();
-    cy::Vec3f boundBoxMax = mesh.GetBoundMax();
-    float zMidpoint = -0.05 * (boundBoxMax.z + boundBoxMin.z) / 2;
-    modelMatrix = glm::translate(modelMatrix, glm::vec3(0, 0, zMidpoint));
+	mesh.ComputeBoundingBox();
+	cy::Vec3f boundBoxMin = mesh.GetBoundMin();
+	cy::Vec3f boundBoxMax = mesh.GetBoundMax();
+	float zMidpoint = -0.05 * (boundBoxMax.z + boundBoxMin.z) / 2;
+	modelMatrix = glm::translate(modelMatrix, glm::vec3(0, 0, zMidpoint));
 }
 
 // Transform Functions
@@ -178,21 +178,21 @@ void boundingBox()
 /// </summary>
 void transformCamera()
 {
-    projectionMatrix = glm::perspective(
-        glm::radians(FOV),
-        16.0f / 9.0f,
-        0.1f,
-        100.0f);
+	projectionMatrix = glm::perspective(
+		glm::radians(FOV),
+		16.0f / 9.0f,
+		0.1f,
+		100.0f);
 
-    viewMatrix = glm::lookAt(
-        cameraPosition, // CAMERA POSITION
-        cameraTarget,   // and looks at the origin (camera location) CAMERA DIRECTION
-        cameraUp        // Head is up (set to 0,-1,0 to look upside-down) // CAMERA RIGHT
-    );
+	viewMatrix = glm::lookAt(
+		cameraPosition, // CAMERA POSITION
+		cameraTarget,   // and looks at the origin (camera location) CAMERA DIRECTION
+		cameraUp        // Head is up (set to 0,-1,0 to look upside-down) // CAMERA RIGHT
+	);
 
-    viewMatrix = glm::translate(viewMatrix, cameraTarget);
-    viewMatrix = glm::rotate(viewMatrix, glm::radians(pitch), glm::vec3(1, 0, 0));
-    viewMatrix = glm::rotate(viewMatrix, glm::radians(yaw), glm::vec3(0, 0, 1));
+	viewMatrix = glm::translate(viewMatrix, cameraTarget);
+	viewMatrix = glm::rotate(viewMatrix, glm::radians(pitch), glm::vec3(1, 0, 0));
+	viewMatrix = glm::rotate(viewMatrix, glm::radians(yaw), glm::vec3(0, 0, 1));
 }
 
 // Callback Functions
@@ -202,55 +202,56 @@ void transformCamera()
 /// </summary>
 void myDisplay()
 {
-    // OpenGL Draw Calls Here
-    // Clear the viewport
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	// OpenGL Draw Calls Here
+	// Clear the viewport
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Compute the different matrices and vectors for rendering the scene
-    mvMatrix = viewMatrix * modelMatrix;
-    lightPosition = glm::vec4(107.780487f, 83.130577f, 0.0f, 1.0f);
-    lightMVMatrix = lightViewMatrix * lightModelMatrix;
-    lightPosition = lightMVMatrix * lightPosition;
-    mvpMatrix = projectionMatrix * viewMatrix * modelMatrix;
-    mvnMatrix = glm::inverseTranspose(mvMatrix);
+	// Compute the different matrices and vectors for rendering the scene
+	mvMatrix = viewMatrix * modelMatrix;
+	lightPosition = glm::vec4(107.780487f, 83.130577f, 0.0f, 1.0f);
+	lightMVMatrix = lightViewMatrix * lightModelMatrix;
+	lightPosition = lightMVMatrix * lightPosition;
+	mvpMatrix = projectionMatrix * viewMatrix * modelMatrix;
+	mvnMatrix = glm::inverseTranspose(mvMatrix);
 
-    // Set Uniform ID Variables for the Shader Program
-    GLuint mvpID = glGetUniformLocation(program.GetID(), "mvp");
-    GLuint mvID = glGetUniformLocation(program.GetID(), "mv");
-    GLuint lightPosID = glGetUniformLocation(program.GetID(), "lightPos");
-    GLuint mvnID = glGetUniformLocation(program.GetID(), "mvn");
-    GLuint diffuseTextureID = glGetUniformLocation(program.GetID(), "tex");
-    GLuint specularTextureID = glGetUniformLocation(program.GetID(), "sptex");
+	// Set Uniform ID Variables for the Shader Program
+	GLuint mvpID = glGetUniformLocation(program.GetID(), "mvp");
+	GLuint mvID = glGetUniformLocation(program.GetID(), "mv");
+	GLuint lightPosID = glGetUniformLocation(program.GetID(), "lightPos");
+	GLuint mvnID = glGetUniformLocation(program.GetID(), "mvn");
+	GLuint diffuseTextureID = glGetUniformLocation(program.GetID(), "tex");
+	GLuint specularTextureID = glGetUniformLocation(program.GetID(), "sptex");
 
-    // Set Up Texture Unit
-    // Diffuse Texture
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, diffuseTexture);
+	// Set Up Texture Unit
+	// Diffuse Texture
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, diffuseTexture);
 
-    // Specular Texture
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, specularTexture);
+	// Specular Texture
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, specularTexture);
 
-    // Set Uniform Data Variables for the Shader Program
-    glUniformMatrix4fv(mvID, 1, GL_FALSE, &mvMatrix[0][0]);
-    glUniformMatrix4fv(mvpID, 1, GL_FALSE, &mvpMatrix[0][0]);
-    glUniformMatrix4fv(mvnID, 1, GL_FALSE, &mvnMatrix[0][0]);
-    glUniform3f(lightPosID, lightPosition.x, lightPosition.y, lightPosition.z);
-    glUniform1i(diffuseTextureID, 0);
-    glUniform1i(specularTextureID, 1);
+	// Set Uniform Data Variables for the Shader Program
+	glUniformMatrix4fv(mvID, 1, GL_FALSE, &mvMatrix[0][0]);
+	glUniformMatrix4fv(mvpID, 1, GL_FALSE, &mvpMatrix[0][0]);
+	glUniformMatrix4fv(mvnID, 1, GL_FALSE, &mvnMatrix[0][0]);
+	glUniform3f(lightPosID, lightPosition.x, lightPosition.y, lightPosition.z);
+	glUniform1i(diffuseTextureID, 0);
+	glUniform1i(specularTextureID, 1);
 
-    // Bind vertex data to vertices of scene
-    glBindVertexArray(vertexArrayObject);
 
-    // Apply Shaders to the Scene
-    /*glUseProgram(program.GetID());*/
-    program.Bind();
+	// Bind vertex data to vertices of scene
+	glBindVertexArray(vertexArrayObject);
 
-    // Render Data to the Screen
-    glDrawArrays(GL_TRIANGLES, 0, triangles.size());
-    // glDrawArrays(GL_POINTS, 0, sizeof(cy::Vec3f) * mesh.NV()); // render points
+	// Apply Shaders to the Scene
+	/*glUseProgram(program.GetID());*/
+	program.Bind();
 
-    glutSwapBuffers(); // Swap buffers (front and back buffers) to give most up to date rendering of scene
+	// Render Data to the Screen
+	glDrawArrays(GL_TRIANGLES, 0, triangles.size());
+	// glDrawArrays(GL_POINTS, 0, sizeof(cy::Vec3f) * mesh.NV()); // render points
+
+	glutSwapBuffers(); // Swap buffers (front and back buffers) to give most up to date rendering of scene
 }
 
 /// <summary>
@@ -258,15 +259,15 @@ void myDisplay()
 /// </summary>
 void transformLight()
 {
-    lightViewMatrix = glm::lookAt(
-        lightViewPosition, // CAMERA POSITION
-        lightTarget,       // and looks at the origin (camera location) CAMERA DIRECTION
-        lightUp            // Head is up (set to 0,-1,0 to look upside-down) // CAMERA RIGHT
-    );
+	lightViewMatrix = glm::lookAt(
+		lightViewPosition, // CAMERA POSITION
+		lightTarget,       // and looks at the origin (camera location) CAMERA DIRECTION
+		lightUp            // Head is up (set to 0,-1,0 to look upside-down) // CAMERA RIGHT
+	);
 
-    lightViewMatrix = glm::translate(lightViewMatrix, lightTarget);
-    lightViewMatrix = glm::rotate(lightViewMatrix, glm::radians(-light_pitch), glm::vec3(0, 0, 1));
-    lightViewMatrix = glm::rotate(lightViewMatrix, glm::radians(light_yaw), glm::vec3(0, 1, 0));
+	lightViewMatrix = glm::translate(lightViewMatrix, lightTarget);
+	lightViewMatrix = glm::rotate(lightViewMatrix, glm::radians(-light_pitch), glm::vec3(0, 0, 1));
+	lightViewMatrix = glm::rotate(lightViewMatrix, glm::radians(light_yaw), glm::vec3(0, 1, 0));
 }
 
 /// <summary>
@@ -277,16 +278,16 @@ void transformLight()
 /// <param name="y">Screen y-coordinate when key is pressed by user</param>
 void myKeyboard(unsigned char key, int x, int y)
 {
-    // GLUT uses ascii for key events
-    switch (key)
-    {
-    case 27:                 // escape key
-        glutLeaveMainLoop(); // Exit main loop and clean up resources
-        break;
-    default:
-        break;
-    }
-    return;
+	// GLUT uses ascii for key events
+	switch (key)
+	{
+	case 27:                 // escape key
+		glutLeaveMainLoop(); // Exit main loop and clean up resources
+		break;
+	default:
+		break;
+	}
+	return;
 }
 
 /// <summary>
@@ -298,14 +299,14 @@ void myKeyboard(unsigned char key, int x, int y)
 /// <param name="y">Screen y-coordinate when key is pressed by user</param>
 void mySpecialKeyboard(int key, int x, int y)
 {
-    // GLUT uses ascii for key events
-    switch (key)
-    {
-    case GLUT_KEY_F6: // Recompile Shaders
-        bool shader_recompile = program.BuildFiles("shader.vert", "shader.frag");
-        break;
-    }
-    return;
+	// GLUT uses ascii for key events
+	switch (key)
+	{
+	case GLUT_KEY_F6: // Recompile Shaders
+		bool shader_recompile = program.BuildFiles("shader.vert", "shader.frag");
+		break;
+	}
+	return;
 }
 
 /// <summary>
@@ -317,47 +318,47 @@ void mySpecialKeyboard(int key, int x, int y)
 /// <param name="y">Screen y-coordinate of mouse location when a button is clicked</param>
 void myMouse(int button, int state, int x, int y)
 {
-    int mod; // variable for storing GLUT Modifier State
-    switch (button)
-    {
-    case GLUT_LEFT_BUTTON: // set the camera angle / light angle
-        if (state == GLUT_DOWN)
-        {
-            mod = glutGetModifiers();
-            if (mod == (GLUT_ACTIVE_CTRL))
-            {
-                leftDown = true;
-                ctrlDown = true;
-                light_angle_prev_x = (float)x;
-                light_angle_prev_y = (float)y;
-            }
-            else
-            {
-                leftDown = true;
-                ctrlDown = false;
-                angle_prev_x = (float)x;
-                angle_prev_y = (float)y;
-            }
-        }
-        if (state == GLUT_UP)
-        {
-            leftDown = false;
-            ctrlDown = false;
-        }
-        break;
-    case GLUT_RIGHT_BUTTON: // set the camera distance
-        if (state == GLUT_DOWN)
-        {
-            camera_distance_prev = (float)y;
-            rightDown = true;
-        }
-        if (state == GLUT_UP)
-        {
-            rightDown = false;
-        }
-    default:
-        break;
-    }
+	int mod; // variable for storing GLUT Modifier State
+	switch (button)
+	{
+	case GLUT_LEFT_BUTTON: // set the camera angle / light angle
+		if (state == GLUT_DOWN)
+		{
+			mod = glutGetModifiers();
+			if (mod == (GLUT_ACTIVE_CTRL))
+			{
+				leftDown = true;
+				ctrlDown = true;
+				light_angle_prev_x = (float)x;
+				light_angle_prev_y = (float)y;
+			}
+			else
+			{
+				leftDown = true;
+				ctrlDown = false;
+				angle_prev_x = (float)x;
+				angle_prev_y = (float)y;
+			}
+		}
+		if (state == GLUT_UP)
+		{
+			leftDown = false;
+			ctrlDown = false;
+		}
+		break;
+	case GLUT_RIGHT_BUTTON: // set the camera distance
+		if (state == GLUT_DOWN)
+		{
+			camera_distance_prev = (float)y;
+			rightDown = true;
+		}
+		if (state == GLUT_UP)
+		{
+			rightDown = false;
+		}
+	default:
+		break;
+	}
 }
 
 /// <summary>
@@ -367,74 +368,74 @@ void myMouse(int button, int state, int x, int y)
 /// <param name="y">Screen y-coordinate for where mouse is located</param>
 void myMouseMotion(int x, int y)
 {
-    // Variables for storing the current camera angle and current distance
-    current_angle_x = (float)x;
-    current_angle_y = (float)y;
-    current_camera_distance = (float)y;
-    light_current_angle_x = (float)x;
-    light_current_angle_y = (float)y;
+	// Variables for storing the current camera angle and current distance
+	current_angle_x = (float)x;
+	current_angle_y = (float)y;
+	current_camera_distance = (float)y;
+	light_current_angle_x = (float)x;
+	light_current_angle_y = (float)y;
 
-    // Update Camera angle
-    if (leftDown == true && ctrlDown == false)
-    {
-        // Calculate the differential x and y when the mouse moves and store the previous coordinate
-        float dx = current_angle_x - angle_prev_x;
-        float dy = current_angle_y - angle_prev_y;
-        angle_prev_x = current_angle_x;
-        angle_prev_y = current_angle_y;
+	// Update Camera angle
+	if (leftDown == true && ctrlDown == false)
+	{
+		// Calculate the differential x and y when the mouse moves and store the previous coordinate
+		float dx = current_angle_x - angle_prev_x;
+		float dy = current_angle_y - angle_prev_y;
+		angle_prev_x = current_angle_x;
+		angle_prev_y = current_angle_y;
 
-        // Scale the differential for a smooth transition
-        dx *= speed;
-        dy *= speed;
+		// Scale the differential for a smooth transition
+		dx *= speed;
+		dy *= speed;
 
-        // Set yaw and pitch
-        yaw += dx;
-        pitch += dy;
+		// Set yaw and pitch
+		yaw += dx;
+		pitch += dy;
 
-        // Update Camera View
-        transformCamera();
-    }
+		// Update Camera View
+		transformCamera();
+	}
 
-    // Update Light Angle
-    if (leftDown == true && ctrlDown == true)
-    {
-        float dx = light_current_angle_x - light_angle_prev_x;
-        float dy = light_current_angle_y - light_angle_prev_y;
-        light_angle_prev_x = light_current_angle_x;
-        light_angle_prev_y = light_current_angle_y;
+	// Update Light Angle
+	if (leftDown == true && ctrlDown == true)
+	{
+		float dx = light_current_angle_x - light_angle_prev_x;
+		float dy = light_current_angle_y - light_angle_prev_y;
+		light_angle_prev_x = light_current_angle_x;
+		light_angle_prev_y = light_current_angle_y;
 
-        // Scale the differential for a smooth transition
-        dx *= speed;
-        dy *= speed;
+		// Scale the differential for a smooth transition
+		dx *= speed;
+		dy *= speed;
 
-        // Set yaw and pitch
-        light_yaw += dx;
-        light_pitch += dy;
+		// Set yaw and pitch
+		light_yaw += dx;
+		light_pitch += dy;
 
-        // Update Scene Lighting
-        transformLight();
-    }
+		// Update Scene Lighting
+		transformLight();
+	}
 
-    // Update Field of View
-    if (rightDown == true && ctrlDown == false)
-    {
-        float dy = 0.0f;
-        dy += current_camera_distance - camera_distance_prev;
-        camera_distance_prev = current_camera_distance;
-        dy *= speed;
-        FOV += dy;
-        if (FOV < 10.0f)
-        {
-            FOV = 10.0f;
-        }
-        if (FOV > 90.0f)
-        {
+	// Update Field of View
+	if (rightDown == true && ctrlDown == false)
+	{
+		float dy = 0.0f;
+		dy += current_camera_distance - camera_distance_prev;
+		camera_distance_prev = current_camera_distance;
+		dy *= speed;
+		FOV += dy;
+		if (FOV < 10.0f)
+		{
+			FOV = 10.0f;
+		}
+		if (FOV > 90.0f)
+		{
 
-            FOV = 90.0f;
-        }
-        // Update Camera View
-        transformCamera();
-    }
+			FOV = 90.0f;
+		}
+		// Update Camera View
+		transformCamera();
+	}
 }
 
 /// <summary>
@@ -442,198 +443,198 @@ void myMouseMotion(int x, int y)
 /// </summary>
 void myIdle()
 {
-    // Tell GLUT to redraw in the main loop
-    glutPostRedisplay();
+	// Tell GLUT to redraw in the main loop
+	glutPostRedisplay();
 }
 
 using namespace std;
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
-    // GLUT Initialization
-    glutInitContextVersion(4, 5); // Initialize GLUT Context Version
-    glutInit(&argc, argv);        // Initialize GLUT
+	// GLUT Initialization
+	glutInitContextVersion(4, 5); // Initialize GLUT Context Version
+	glutInit(&argc, argv);        // Initialize GLUT
 
-    // Create a Window
-    glutInitWindowSize(1920, 1080);                            // specify width, height of window
-    glutInitWindowPosition(0, 0);                              // specify the position of the window (x, y) coordinate for center
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH); // Initialize the display
-    glutCreateWindow("Window Title");
+	// Create a Window
+	glutInitWindowSize(1920, 1080);                            // specify width, height of window
+	glutInitWindowPosition(0, 0);                              // specify the position of the window (x, y) coordinate for center
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH); // Initialize the display
+	glutCreateWindow("Window Title");
 
-    // Initialize GLEW
-    glewInit();
+	// Initialize GLEW
+	glewInit();
 
-    // Specify OpenGL Settings
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_LESS);
-    glEnable(GL_CULL_FACE);
+	// Specify OpenGL Settings
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_LESS);
+	glEnable(GL_CULL_FACE);
 
-    // Callback Functions
-    glutDisplayFunc(myDisplay);         // rendering callback function
-    glutKeyboardFunc(myKeyboard);       // keyboard callback function
-    glutSpecialFunc(mySpecialKeyboard); // special keyboard callback function
-    glutMouseFunc(myMouse);             // mouse click event callback function
-    glutMotionFunc(myMouseMotion);      // mouse motion callback function
-    glutIdleFunc(myIdle);               // IDLE callback function (for animation)
+	// Callback Functions
+	glutDisplayFunc(myDisplay);         // rendering callback function
+	glutKeyboardFunc(myKeyboard);       // keyboard callback function
+	glutSpecialFunc(mySpecialKeyboard); // special keyboard callback function
+	glutMouseFunc(myMouse);             // mouse click event callback function
+	glutMotionFunc(myMouseMotion);      // mouse motion callback function
+	glutIdleFunc(myIdle);               // IDLE callback function (for animation)
 
-    // Initialize Scene
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);         // Clear the previous color and initialize background to black
-    initializeCamera();                           // initialize camera
-    initializeLight();                            // initialize scene lighting
-    bool success = mesh.LoadFromFileObj(argv[1]); // Load scene from .obj files
-    // if (success)
-    //{
-    //     std::cout << "teapot .obj file loads" << std::endl;
-    // }
+	// Initialize Scene
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);         // Clear the previous color and initialize background to black
+	initializeCamera();                           // initialize camera
+	initializeLight();                            // initialize scene lighting
+	bool success = mesh.LoadFromFileObj(argv[1]); // Load scene from .obj files
+	//if (success)
+	//{
+	//    std::cout << "teapot .obj file loads" << std::endl;
+	//}
 
-    // Load Diffuse Texture
-    std::string diffuseFile(mesh.M(0).map_Kd);                                                                // load diffuse texture from .mtl file
-    unsigned diffuse_success = lodepng::decode(diffuseTextureData, diffuseWidth, diffuseHeight, diffuseFile); // load diffuse texture
-    // std::cout << "diffuse texture size: " << diffuseTextureData.size() << std::endl;
-    glGenTextures(1, &diffuseTexture);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, diffuseTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, diffuseWidth, diffuseHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, &diffuseTextureData[0]);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glGenerateMipmap(GL_TEXTURE_2D);
+	// Load Diffuse Texture
+	std::string diffuseFile(mesh.M(0).map_Kd);                                                                // load diffuse texture from .mtl file
+	unsigned diffuse_success = lodepng::decode(diffuseTextureData, diffuseWidth, diffuseHeight, diffuseFile); // load diffuse texture
+	//std::cout << "diffuse texture size: " << diffuseTextureData.size() << std::endl;
+	glGenTextures(1, &diffuseTexture);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, diffuseTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, diffuseWidth, diffuseHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, &diffuseTextureData[0]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glGenerateMipmap(GL_TEXTURE_2D);
 
-    // Load Specular Texture
-    std::string specularFile(mesh.M(0).map_Ks);                                                                    // load specular texture from .mtl file
-    unsigned specular_success = lodepng::decode(specularTextureData, specularWidth, specularHeight, specularFile); // load specular texture
-    // std::cout << "specular texture size: " << specularTextureData.size() << std::endl;
-    glGenTextures(1, &specularTexture);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, specularTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, specularWidth, specularHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, &specularTextureData[0]);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glGenerateMipmap(GL_TEXTURE_2D);
+	// Load Specular Texture
+	std::string specularFile(mesh.M(0).map_Ks);                                                                    // load specular texture from .mtl file
+	unsigned specular_success = lodepng::decode(specularTextureData, specularWidth, specularHeight, specularFile); // load specular texture
+	//std::cout << "specular texture size: " << specularTextureData.size() << std::endl;
+	glGenTextures(1, &specularTexture);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, specularTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, specularWidth, specularHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, &specularTextureData[0]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glGenerateMipmap(GL_TEXTURE_2D);
 
-    // Load Triangles
-    for (int i = 0; i < mesh.NF(); i++)
-    {
-        cy::Vec3f vertex1 = mesh.V(mesh.F(i).v[0]);
-        cy::Vec3f vertex2 = mesh.V(mesh.F(i).v[1]);
-        cy::Vec3f vertex3 = mesh.V(mesh.F(i).v[2]);
-        triangles.push_back(vertex1);
-        triangles.push_back(vertex2);
-        triangles.push_back(vertex3);
-    }
+	// Load Triangles
+	for (int i = 0; i < mesh.NF(); i++)
+	{
+		cy::Vec3f vertex1 = mesh.V(mesh.F(i).v[0]);
+		cy::Vec3f vertex2 = mesh.V(mesh.F(i).v[1]);
+		cy::Vec3f vertex3 = mesh.V(mesh.F(i).v[2]);
+		triangles.push_back(vertex1);
+		triangles.push_back(vertex2);
+		triangles.push_back(vertex3);
+	}
 
-    // Load Normals
-    for (int j = 0; j < mesh.NF(); j++)
-    {
-        cy::Vec3f normals1 = mesh.VN(mesh.FN(j).v[0]);
-        cy::Vec3f normals2 = mesh.VN(mesh.FN(j).v[1]);
-        cy::Vec3f normals3 = mesh.VN(mesh.FN(j).v[2]);
-        normals.push_back(normals1);
-        normals.push_back(normals2);
-        normals.push_back(normals3);
-    }
+	// Load Normals
+	for (int j = 0; j < mesh.NF(); j++)
+	{
+		cy::Vec3f normals1 = mesh.VN(mesh.FN(j).v[0]);
+		cy::Vec3f normals2 = mesh.VN(mesh.FN(j).v[1]);
+		cy::Vec3f normals3 = mesh.VN(mesh.FN(j).v[2]);
+		normals.push_back(normals1);
+		normals.push_back(normals2);
+		normals.push_back(normals3);
+	}
 
-    // Load Diffuse Texture
-    for (int k = 0; k < mesh.NF(); k++)
-    {
-        cy::Vec2f diffuseTextures1 = mesh.VT(mesh.FT(k).v[0]).XY();
-        cy::Vec2f diffuseTextures2 = mesh.VT(mesh.FT(k).v[1]).XY();
-        cy::Vec2f diffuseTextures3 = mesh.VT(mesh.FT(k).v[2]).XY();
-        diffuseTextureCoords.push_back(diffuseTextures1);
-        diffuseTextureCoords.push_back(diffuseTextures2);
-        diffuseTextureCoords.push_back(diffuseTextures3);
-    }
+	// Load Diffuse Texture
+	for (int k = 0; k < mesh.NF(); k++)
+	{
+		cy::Vec2f diffuseTextures1 = mesh.VT(mesh.FT(k).v[0]).XY();
+		cy::Vec2f diffuseTextures2 = mesh.VT(mesh.FT(k).v[1]).XY();
+		cy::Vec2f diffuseTextures3 = mesh.VT(mesh.FT(k).v[2]).XY();
+		diffuseTextureCoords.push_back(diffuseTextures1);
+		diffuseTextureCoords.push_back(diffuseTextures2);
+		diffuseTextureCoords.push_back(diffuseTextures3);
+	}
 
-    // Load Specular Texture
-    for (int n = 0; n < mesh.NF(); n++)
-    {
-        cy::Vec2f specularTextures1 = mesh.VT(mesh.FT(n).v[0]).XY();
-        cy::Vec2f specularTextures2 = mesh.VT(mesh.FT(n).v[1]).XY();
-        cy::Vec2f specularTextures3 = mesh.VT(mesh.FT(n).v[2]).XY();
-        specularTextureCoords.push_back(specularTextures1);
-        specularTextureCoords.push_back(specularTextures2);
-        specularTextureCoords.push_back(specularTextures3);
-    }
+	// Load Specular Texture
+	for (int n = 0; n < mesh.NF(); n++)
+	{
+		cy::Vec2f specularTextures1 = mesh.VT(mesh.FT(n).v[0]).XY();
+		cy::Vec2f specularTextures2 = mesh.VT(mesh.FT(n).v[1]).XY();
+		cy::Vec2f specularTextures3 = mesh.VT(mesh.FT(n).v[2]).XY();
+		specularTextureCoords.push_back(specularTextures1);
+		specularTextureCoords.push_back(specularTextures2);
+		specularTextureCoords.push_back(specularTextures3);
+	}
 
-    // Vertex Array Object
-    glGenVertexArrays(1, &vertexArrayObject);
-    glBindVertexArray(vertexArrayObject);
+	// Vertex Array Object
+	glGenVertexArrays(1, &vertexArrayObject);
+	glBindVertexArray(vertexArrayObject);
 
-    // Create Buffers
-    // Vertex Buffer
-    glGenBuffers(1, &vertexBufferObject);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        sizeof(std::vector<cy::Vec3f>) * triangles.size(),
-        &triangles[0],
-        GL_STATIC_DRAW);
+	// Create Buffers
+	// Vertex Buffer
+	glGenBuffers(1, &vertexBufferObject);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
+	glBufferData(
+		GL_ARRAY_BUFFER,
+		sizeof(std::vector<cy::Vec3f>) * triangles.size(),
+		&triangles[0],
+		GL_STATIC_DRAW);
 
-    // Normal Buffer
-    glGenBuffers(1, &normalBufferObject);
-    glBindBuffer(GL_ARRAY_BUFFER, normalBufferObject);
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        sizeof(std::vector<cy::Vec3f>) * normals.size(),
-        &normals[0],
-        GL_STATIC_DRAW);
+	// Normal Buffer
+	glGenBuffers(1, &normalBufferObject);
+	glBindBuffer(GL_ARRAY_BUFFER, normalBufferObject);
+	glBufferData(
+		GL_ARRAY_BUFFER,
+		sizeof(std::vector<cy::Vec3f>) * normals.size(),
+		&normals[0],
+		GL_STATIC_DRAW);
 
-    // Create Textures
-    // Diffuse Texture
-    glGenBuffers(1, &diffuseTextureBufferObject);
-    glBindBuffer(GL_ARRAY_BUFFER, diffuseTextureBufferObject);
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        sizeof(std::vector<cy::Vec2f>) * diffuseTextureCoords.size(),
-        &diffuseTextureCoords[0],
-        GL_STATIC_DRAW);
+	// Create Textures
+	// Diffuse Texture
+	glGenBuffers(1, &diffuseTextureBufferObject);
+	glBindBuffer(GL_ARRAY_BUFFER, diffuseTextureBufferObject);
+	glBufferData(
+		GL_ARRAY_BUFFER,
+		sizeof(std::vector<cy::Vec2f>) * diffuseTextureCoords.size(),
+		&diffuseTextureCoords[0],
+		GL_STATIC_DRAW);
 
-    // Specular Texture
-    glGenBuffers(1, &specularTextureBufferObject);
-    glBindBuffer(GL_ARRAY_BUFFER, specularTextureBufferObject);
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        sizeof(std::vector<cy::Vec2f>) * specularTextureCoords.size(),
-        &specularTextureCoords[0],
-        GL_STATIC_DRAW);
+	// Specular Texture
+	glGenBuffers(1, &specularTextureBufferObject);
+	glBindBuffer(GL_ARRAY_BUFFER, specularTextureBufferObject);
+	glBufferData(
+		GL_ARRAY_BUFFER,
+		sizeof(std::vector<cy::Vec2f>) * specularTextureCoords.size(),
+		&specularTextureCoords[0],
+		GL_STATIC_DRAW);
 
-    // Compile Shaders
-    bool shader_compile = program.BuildFiles("shader.vert", "shader.frag");
+	// Compile Shaders
+	bool shader_compile = program.BuildFiles("shader.vert", "shader.frag");
 
-    // Assign Vertex Buffer Objects to Vertex Attributes
-    GLuint pos = glGetAttribLocation(program.GetID(), "pos");
-    glEnableVertexAttribArray(pos);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
-    glVertexAttribPointer(
-        pos, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *)0);
+	// Assign Vertex Buffer Objects to Vertex Attributes
+	GLuint pos = glGetAttribLocation(program.GetID(), "pos");
+	glEnableVertexAttribArray(pos);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
+	glVertexAttribPointer(
+		pos, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
 
-    // Assign Normal Buffer Objects to Vertex Attributes
-    GLuint normalPos = glGetAttribLocation(program.GetID(), "normalPos");
-    glEnableVertexAttribArray(normalPos);
-    glBindBuffer(GL_ARRAY_BUFFER, normalBufferObject);
-    glVertexAttribPointer(
-        normalPos, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *)0);
+	// Assign Normal Buffer Objects to Vertex Attributes
+	GLuint normalPos = glGetAttribLocation(program.GetID(), "normalPos");
+	glEnableVertexAttribArray(normalPos);
+	glBindBuffer(GL_ARRAY_BUFFER, normalBufferObject);
+	glVertexAttribPointer(
+		normalPos, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
 
-    // Assign Diffuse Texture Buffer Objects to Vertex Attributes
-    GLuint diffuseTexturePos = glGetAttribLocation(program.GetID(), "txc");
-    glEnableVertexAttribArray(diffuseTexturePos);
-    glBindBuffer(GL_ARRAY_BUFFER, diffuseTextureBufferObject);
-    glVertexAttribPointer(
-        diffuseTexturePos, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid *)0);
+	// Assign Diffuse Texture Buffer Objects to Vertex Attributes
+	GLuint diffuseTexturePos = glGetAttribLocation(program.GetID(), "txc");
+	glEnableVertexAttribArray(diffuseTexturePos);
+	glBindBuffer(GL_ARRAY_BUFFER, diffuseTextureBufferObject);
+	glVertexAttribPointer(
+		diffuseTexturePos, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
 
-    // Assign Specular Texture Buffer Objects to Vertex Attributes
-    GLuint specularTexturePos = glGetAttribLocation(program.GetID(), "sptxc");
-    glEnableVertexAttribArray(specularTexturePos);
-    glBindBuffer(GL_ARRAY_BUFFER, specularTextureBufferObject);
-    glVertexAttribPointer(
-        specularTexturePos, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid *)0);
+	// Assign Specular Texture Buffer Objects to Vertex Attributes
+	GLuint specularTexturePos = glGetAttribLocation(program.GetID(), "sptxc");
+	glEnableVertexAttribArray(specularTexturePos);
+	glBindBuffer(GL_ARRAY_BUFFER, specularTextureBufferObject);
+	glVertexAttribPointer(
+		specularTexturePos, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
 
-    // Bounding Box
-    boundingBox();
+	// Bounding Box
+	boundingBox();
 
-    // Set up rendering for the scene
-    glutMainLoop(); // Call main loop for rendering
-    return 0;       // Exit when main loop is done
+	// Set up rendering for the scene
+	glutMainLoop(); // Call main loop for rendering
+	return 0;       // Exit when main loop is done
 }

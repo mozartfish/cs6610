@@ -28,12 +28,12 @@ vec3 I = vec3(1.0f, 1.0f, 1.0f); // light intensity
 vec3 I_a = vec3(1.0f, 1.0f, 1.0f); // ambient light intensity
 float cosTheta = dot(n, w);
 float cosPhi = dot(n, h);
-float alpha = 50.0f;
-//float alpha = 5.0f; // TESTING ONLY
+//float alpha = 50.0f;
+float alpha = 5.0f; // TESTING ONLY
 
 // Shading Constants
-vec3 kd = vec3(1.0f, 0.0f, 0.0f); // surface color / diffuse constant
-//vec3 kd = vec3(1.0f, 1.0f, 1.0f); // surface color / diffuse constant - TESTING ONLY
+//vec3 kd = vec3(1.0f, 0.0f, 0.0f); // surface color / diffuse constant
+vec3 kd = vec3(1.0f, 1.0f, 1.0f); // surface color / diffuse constant - TESTING ONLY
 vec3 kd_texture = texture(tex, texCoord).rgb; // diffuse texture constant
 vec3 ks = vec3(1.0f, 1.0f, 1.0f); // specular constant
 vec3 ks_texture = texture(sptex, sptexCoord).rgb; // specular texture constant
@@ -54,9 +54,9 @@ vec3 blinn_texture = I * (diffuse_texture + specular_texture); // Blinn Shading 
 vec3 blinn = I * (diffuse + specular) + I_a * ambient; // Blinn Shading
 
 void main() {
-color = vec4(blinn_texture, 1); // blinn shading with textures
+//color = vec4(blinn_texture, 1); // blinn shading with textures
 //color = vec4(specular_texture, 1); // specular texture
-//color = vec4(diffuse_texture, 1); // diffuse texture 
+color = vec4(diffuse_texture, 1); // diffuse texture 
 //color = vec4(blinn, 1); // blinn shading
 //color = vec4(specular, 1); // specular shading
 //color = vec4(diffuse, 1); // diffuse shading
