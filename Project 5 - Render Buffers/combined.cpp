@@ -1,4 +1,4 @@
-// C++ Libraries
+// Libraries
 #include <iostream>
 #include <vector>
 
@@ -29,6 +29,11 @@ GLuint vertexBufferObject;         // global variable for strogin vertex buffer 
 GLuint normalBufferObject;         // global variable for storing normal buffer data
 GLuint diffuseTexture;             // global variable for storing diffuse texture data
 GLuint diffuseTextureBufferObject; // global variable for storing diffuse texture buffer data
+
+// Plane Global Variables
+cy::GLSLProgram quad_program; // global variable for compiling and running shader program
+GLuint quad_vertexArrayObject;
+GLuint quad_vertexBufferObject;
 
 // Speed Variable - for controlling refresh/rendering rate
 float speed = 0.2f;
@@ -104,6 +109,41 @@ std::vector<cy::Vec2f> diffuseTextureCoords;
 // Diffuse Texture
 std::vector<unsigned char> diffuseTextureData;
 unsigned diffuseWidth, diffuseHeight;
+
+// PLANE Variables
+// Matrix Transform Variables
+// Camera Transform Variables
+glm::mat4 plane_modelMatrix;      // global variable for representing the model space with respect to the camera
+glm::mat4 plane_viewMatrix;       // global variable for representing the view space with respect to the camera
+glm::mat4 plane_projectionMatrix; // global variable for representing the real world space with respect to the camera
+glm::mat4 plane_mvMatrix;         // global variable for representing the model-view space
+glm::mat4 plane_mvpMatrix;        // global variable for representing the model-view-projection space
+
+// Camera Variables
+// Camera Vectors
+glm::vec3 plane_cameraPosition; // global variable for representing the camera location
+glm::vec3 plane_cameraTarget;   // global variable for representing where the camera is pointing at
+glm::vec3 plane_cameraUp;       // global variable for representing whether the camera is pointing up or down
+
+// Camera Previous State Variables
+float plane_angle_prev_x;
+float plane_angle_prev_y;
+float plane_camera_distance_prev;
+
+// Camera Current State Variables
+float plane_current_angle_x;
+float plane_current_angle_y;
+float plane_current_camera_distance;
+
+// Camera Default Settings
+float plane_yaw = 0.0f;   // global variable for controlling horiziontal camera movement
+float plane_pitch = 0.0f; // global variable for controlling vertical camera movement
+float plane_FOV = 45.0f;  // global variable for controlling field of view (zoom)
+
+// Mouse Event Variables (User Interaction Controls)
+bool plane_leftDown = false;
+bool plane_rightDown = false;
+bool plane_altDown = false;
 
 // Initialization Functions
 /// <summary>
@@ -182,6 +222,55 @@ void transformCamera()
     viewMatrix = glm::rotate(viewMatrix, glm::radians(yaw), glm::vec3(0, 0, 1));
 }
 
+// PLANE CAMERA FUNCTIONS
+// Initialization Functions
+/// <summary>
+/// Initialize the scene camera
+/// </summary>
+void plane_initializeCamera()
+{
+    plane_modelMatrix = glm::mat4(1.0f);
+
+    plane_cameraPosition = glm::vec3(0.0f, -2.0f, 1.0f);
+    plane_cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+    plane_cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+    plane_viewMatrix = glm::lookAt(
+        plane_cameraPosition, // CAMERA POSITION
+        plane_cameraTarget,   // and looks at the origin (camera location) CAMERA DIRECTION
+        plane_cameraUp        // Head is up (set to 0,-1,0 to look upside-down) // CAMERA RIGHT
+    );
+
+    plane_projectionMatrix = glm::perspective(
+        glm::radians(plane_FOV),
+        16.0f / 9.0f,
+        0.1f,
+        100.0f);
+}
+
+// Transform Functions
+
+/// <summary>
+/// Camera motion in the horizontal and vertical directions
+/// </summary>
+void plane_transformCamera()
+{
+    plane_projectionMatrix = glm::perspective(
+        glm::radians(plane_FOV),
+        16.0f / 9.0f,
+        0.1f,
+        100.0f);
+
+    plane_viewMatrix = glm::lookAt(
+        plane_cameraPosition, // CAMERA POSITION
+        plane_cameraTarget,   // and looks at the origin (camera location) CAMERA DIRECTION
+        plane_cameraUp        // Head is up (set to 0,-1,0 to look upside-down) // CAMERA RIGHT
+    );
+
+    plane_viewMatrix = glm::translate(plane_viewMatrix, plane_cameraTarget);
+    plane_viewMatrix = glm::rotate(plane_viewMatrix, glm::radians(plane_pitch), glm::vec3(1, 0, 0));
+    plane_viewMatrix = glm::rotate(plane_viewMatrix, glm::radians(plane_yaw), glm::vec3(0, 0, 1));
+}
+
 // Callback Functions
 
 /// <summary>
@@ -201,34 +290,54 @@ void myDisplay()
     mvpMatrix = projectionMatrix * viewMatrix * modelMatrix;
     mvnMatrix = glm::inverseTranspose(mvMatrix);
 
-    // Set Uniform ID Variables for the Shader Program
+    //// Set Uniform ID Variables for the Shader Program
     GLuint mvpID = glGetUniformLocation(program.GetID(), "mvp");
     GLuint mvID = glGetUniformLocation(program.GetID(), "mv");
     GLuint lightPosID = glGetUniformLocation(program.GetID(), "lightPos");
     GLuint mvnID = glGetUniformLocation(program.GetID(), "mvn");
     GLuint diffuseTextureID = glGetUniformLocation(program.GetID(), "tex");
 
-    // Set Up Texture Unit
-    // Diffuse Texture
+    //// Set Up Texture Unit
+    //// Diffuse Texture
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, diffuseTexture);
 
-    // Set Uniform Data Variables for the Shader Program
+    //// Set Uniform Data Variables for the Shader Program
     glUniformMatrix4fv(mvID, 1, GL_FALSE, &mvMatrix[0][0]);
     glUniformMatrix4fv(mvpID, 1, GL_FALSE, &mvpMatrix[0][0]);
     glUniformMatrix4fv(mvnID, 1, GL_FALSE, &mvnMatrix[0][0]);
     glUniform3f(lightPosID, lightPosition.x, lightPosition.y, lightPosition.z);
     glUniform1i(diffuseTextureID, 0);
 
-    // Bind vertex data to vertices of scene
+    //// Bind vertex data to vertices of scene
     glBindVertexArray(vertexArrayObject);
 
-    // Apply Shaders to the Scene
+    //// Apply Shaders to the Scene
     program.Bind();
 
-    // Render Data to the Screen
+    //// Render Data to the Screen
     glDrawArrays(GL_TRIANGLES, 0, triangles.size());
-    // glDrawArrays(GL_POINTS, 0, sizeof(cy::Vec3f) * mesh.NV()); // render points
+
+    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Compute the different matrices and vectors for rendering the scene
+    plane_mvMatrix = plane_viewMatrix * plane_modelMatrix;
+    plane_mvpMatrix = plane_projectionMatrix * plane_viewMatrix * plane_modelMatrix;
+
+    // Set Uniform ID Variables for the Shader Program
+    GLuint plane_mvpID = glGetUniformLocation(quad_program.GetID(), "plane_mvp");
+
+    // Set Uniform Data Variables for the Shader Program
+    glUniformMatrix4fv(plane_mvpID, 1, GL_FALSE, &plane_mvpMatrix[0][0]);
+
+    // Bind vertex data to vertices of scene
+    glBindVertexArray(quad_vertexArrayObject);
+
+    //// Apply Shaders to the Scene
+    quad_program.Bind();
+
+    //// Render Data to the Screen
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 
     glutSwapBuffers(); // Swap buffers (front and back buffers) to give most up to date rendering of scene
 }
@@ -304,6 +413,13 @@ void myMouse(int button, int state, int x, int y)
         if (state == GLUT_DOWN)
         {
             mod = glutGetModifiers();
+            if (mod == (GLUT_ACTIVE_ALT))
+            {
+                plane_leftDown = true;
+                plane_altDown = true;
+                plane_angle_prev_x = (float)x;
+                plane_angle_prev_y = (float)y;
+            }
             if (mod == (GLUT_ACTIVE_CTRL))
             {
                 leftDown = true;
@@ -322,18 +438,33 @@ void myMouse(int button, int state, int x, int y)
         if (state == GLUT_UP)
         {
             leftDown = false;
+            plane_leftDown = false;
             ctrlDown = false;
+            plane_altDown = false;
         }
         break;
     case GLUT_RIGHT_BUTTON: // set the camera distance
         if (state == GLUT_DOWN)
         {
-            camera_distance_prev = (float)y;
-            rightDown = true;
+            mod = glutGetModifiers();
+            if (mod == (GLUT_ACTIVE_ALT))
+            {
+                plane_camera_distance_prev = (float)y;
+                plane_rightDown = true;
+                plane_altDown = true;
+            }
+            else
+            {
+                camera_distance_prev = (float)y;
+                rightDown = true;
+                plane_altDown = false;
+            }
         }
         if (state == GLUT_UP)
         {
             rightDown = false;
+            plane_rightDown = false;
+            plane_altDown = false;
         }
     default:
         break;
@@ -414,6 +545,53 @@ void myMouseMotion(int x, int y)
         }
         // Update Camera View
         transformCamera();
+    }
+
+    // Variables for storing the current camera angle and current distance
+    plane_current_angle_x = (float)x;
+    plane_current_angle_y = (float)y;
+    plane_current_camera_distance = (float)y;
+
+    // Update Camera angle
+    if (plane_leftDown == true && plane_altDown == true)
+    {
+        // Calculate the differential x and y when the mouse moves and store the previous coordinate
+        float dx = plane_current_angle_x - plane_angle_prev_x;
+        float dy = plane_current_angle_y - plane_angle_prev_y;
+        plane_angle_prev_x = plane_current_angle_x;
+        plane_angle_prev_y = plane_current_angle_y;
+
+        // Scale the differential for a smooth transition
+        dx *= speed;
+        dy *= speed;
+
+        // Set yaw and pitch
+        plane_yaw += dx;
+        plane_pitch += dy;
+
+        // Update Camera View
+        plane_transformCamera();
+    }
+
+    // Update Field of View
+    if (plane_rightDown == true && plane_altDown == true)
+    {
+        float dy = 0.0f;
+        dy += plane_current_camera_distance - plane_camera_distance_prev;
+        plane_camera_distance_prev = plane_current_camera_distance;
+        dy *= speed;
+        plane_FOV += dy;
+        if (plane_FOV < 10.0f)
+        {
+            plane_FOV = 10.0f;
+        }
+        if (plane_FOV > 90.0f)
+        {
+
+            plane_FOV = 90.0f;
+        }
+        // Update Camera View
+        plane_transformCamera();
     }
 }
 
@@ -563,6 +741,51 @@ void teaInit()
     boundingBox();                                                    // bounding box
 }
 
+/// <summary>
+/// Load and render the plane
+/// </summary>
+void quadInit()
+{
+    static const GLfloat quad_vertex_buffer_data[] = {
+        -10.0f,
+        -10.0f,
+        0.0f,
+        10.0f,
+        -10.0f,
+        0.0f,
+        -10.0f,
+        10.0f,
+        0.0f,
+        -10.0f,
+        10.0f,
+        0.0f,
+        10.0f,
+        -10.0f,
+        0.0f,
+        10.0f,
+        10.0f,
+        0.0f,
+    };
+
+    // Vertex Array Object
+    glGenVertexArrays(1, &quad_vertexArrayObject);
+    glBindVertexArray(quad_vertexArrayObject);
+
+    // Normal Buffer
+    glGenBuffers(1, &quad_vertexBufferObject);
+    glBindBuffer(GL_ARRAY_BUFFER, quad_vertexBufferObject);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quad_vertex_buffer_data), quad_vertex_buffer_data, GL_STATIC_DRAW);
+
+    // Compile shaders
+    bool quad_compile_shaders = quad_program.BuildFiles("plane.vert", "plane.frag");
+    // Assign Vertex Buffer Objects to Vertex Attributes
+    GLuint plane_pos = glGetAttribLocation(quad_program.GetID(), "plane_pos");
+    glEnableVertexAttribArray(plane_pos);
+    glBindBuffer(GL_ARRAY_BUFFER, quad_vertexBufferObject);
+    glVertexAttribPointer(
+        plane_pos, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *)0);
+}
+
 using namespace std;
 int main(int argc, char **argv)
 {
@@ -595,9 +818,11 @@ int main(int argc, char **argv)
     // Initialize Scene
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);         // Clear the previous color and initialize background to black
     initializeCamera();                           // initialize camera
+    plane_initializeCamera();                     // intialize plane camera
     initializeLight();                            // initialize scene lighting
     bool success = mesh.LoadFromFileObj(argv[1]); // Load scene from .obj files
-    teaInit();                                    // load and render the teapot
+    // teaInit(); // load and render the teapot
+    quadInit(); // load and render the plane
 
     // Set up rendering for the scene
     glutMainLoop(); // Call main loop for rendering

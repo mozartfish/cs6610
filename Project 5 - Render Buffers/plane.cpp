@@ -58,7 +58,7 @@ float plane_FOV = 45.0f;  // global variable for controlling field of view (zoom
 // Mouse Event Variables (User Interaction Controls)
 bool plane_leftDown = false;
 bool plane_rightDown = false;
-bool plane_ctrlDown = false;
+bool plane_altDown = false;
 
 // Initialization Functions
 /// <summary>
@@ -181,7 +181,7 @@ void myMouse(int button, int state, int x, int y)
             if (mod == (GLUT_ACTIVE_ALT))
             {
                 plane_leftDown = true;
-                plane_ctrlDown = true;
+                plane_altDown = true;
                 plane_angle_prev_x = (float)x;
                 plane_angle_prev_y = (float)y;
             }
@@ -189,7 +189,7 @@ void myMouse(int button, int state, int x, int y)
         if (state == GLUT_UP)
         {
             plane_leftDown = false;
-            plane_ctrlDown = false;
+            plane_altDown = false;
         }
         break;
     case GLUT_RIGHT_BUTTON: // set the camera distance
@@ -200,13 +200,13 @@ void myMouse(int button, int state, int x, int y)
             {
                 plane_camera_distance_prev = (float)y;
                 plane_rightDown = true;
-                plane_ctrlDown = true;
+                plane_altDown = true;
             }
         }
         if (state == GLUT_UP)
         {
             plane_rightDown = false;
-            plane_ctrlDown = false;
+            plane_altDown = false;
         }
     default:
         break;
@@ -226,7 +226,7 @@ void myMouseMotion(int x, int y)
     plane_current_camera_distance = (float)y;
 
     // Update Camera angle
-    if (plane_leftDown == true && plane_ctrlDown == true)
+    if (plane_leftDown == true && plane_altDown == true)
     {
         // Calculate the differential x and y when the mouse moves and store the previous coordinate
         float dx = plane_current_angle_x - plane_angle_prev_x;
@@ -247,7 +247,7 @@ void myMouseMotion(int x, int y)
     }
 
     // Update Field of View
-    if (plane_rightDown == true && plane_ctrlDown == true)
+    if (plane_rightDown == true && plane_altDown == true)
     {
         float dy = 0.0f;
         dy += plane_current_camera_distance - plane_camera_distance_prev;
@@ -277,9 +277,9 @@ void myIdle()
     glutPostRedisplay();
 }
 
-void createPlane()
+void  createPlane()
 {
-    static const GLfloat quad_vertex[] =
+    static const GLfloat plane_vertices[] =
         {
             -10.0f,
             -10.0f,
@@ -306,7 +306,7 @@ void createPlane()
 
     glGenBuffers(1, &plane_vertexBufferObject);
     glBindBuffer(GL_ARRAY_BUFFER, plane_vertexBufferObject);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quad_vertex), quad_vertex, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(plane_vertices), plane_vertices, GL_STATIC_DRAW);
 }
 using namespace std;
 int main(int argc, char **argv)
@@ -343,7 +343,7 @@ int main(int argc, char **argv)
     createPlane();
 
     // Compile Shaders
-    bool shader_compile = plane_program.BuildFiles("plane_shader.vert", "plane_shader.frag");
+    bool shader_compile = plane_program.BuildFiles("plane.vert", "plane.frag");
 
     // Assign Vertex Buffer Objects to Vertex Attributes
     GLuint plane_pos = glGetAttribLocation(plane_program.GetID(), "plane_pos");
