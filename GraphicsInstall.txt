@@ -28,7 +28,3 @@ opengl32.lib
 Build Events Post Build 
 copy "$(SolutionDir)libraries\freeglut\bin\$(Platform)\freeglut.dll" "$(OutDir)"
 copy "$(SolutionDir)libraries\glew\bin\Release\$(Platform)\glew32.dll" "$(OutDir)"
-
-
-
-mao was aughing 
