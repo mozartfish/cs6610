@@ -1,4 +1,4 @@
-// Libraries
+// C++ Libraries
 #include <iostream>
 #include <vector>
 
@@ -21,24 +21,41 @@
 // lodepng
 #include "lodepng.h"
 
-// Global Variable Initialization
-cy::TriMesh mesh;                  // global variable for storing the scene data
-cy::GLSLProgram program;           // global variable for compiling and running shader program
-GLuint vertexArrayObject;          // global variable for storing vertex array data
-GLuint vertexBufferObject;         // global variable for strogin vertex buffer data
-GLuint normalBufferObject;         // global variable for storing normal buffer data
-GLuint diffuseTexture;             // global variable for storing diffuse texture data
+// Screen Variables
+int window_width = 1920;
+int window_height = 1080;
+
+// CyCode Variables
+cy::TriMesh mesh;            // global variable for storing the scene data
+cy::GLSLProgram teaProgram;  // global variable for compiling and running shader program
+cy::GLSLProgram quadProgram; // global variable for compiling and running shader program
+
+// Vertex Array Objects
+GLuint teaVertexArrayObject; // global variable for storing vertex array data for teapot
+GLuint quadVertexArrayObject;
+
+// Vertex Buffer Objects
+GLuint vertexBufferObject; // global variable for storing vertex buffer data
+GLuint quadVertexBufferObject;
+
+// Vertex Normal Objects
+GLuint normalBufferObject; // global variable for storing normal buffer data
+
+// Texture Buffer Objects
 GLuint diffuseTextureBufferObject; // global variable for storing diffuse texture buffer data
 
-// Plane Global Variables
-cy::GLSLProgram quad_program; // global variable for compiling and running shader program
-GLuint quad_vertexArrayObject;
-GLuint quad_vertexBufferObject;
+// Textures
+GLuint diffuseTexture; // global variable for storing diffuse texture data
+
+// Render to Texture
+GLuint frameBuffer;
+GLuint depthBuffer;
+GLuint renderedTexture;
 
 // Speed Variable - for controlling refresh/rendering rate
 float speed = 0.2f;
 
-// Matrix Transform Variables
+// TEAPOT VARIABLES
 // Camera Transform Variables
 glm::mat4 modelMatrix;      // global variable for representing the model space with respect to the camera
 glm::mat4 viewMatrix;       // global variable for representing the view space with respect to the camera
@@ -52,28 +69,27 @@ glm::mat4 lightModelMatrix; // global variable for representing the model space 
 glm::mat4 lightViewMatrix;  // global variable for representing the view space with respect to the light
 glm::mat4 lightMVMatrix;    // global variable for representing the model-view space with respect to the light
 
-// Camera Variables
 // Camera Vectors
 glm::vec3 cameraPosition; // global variable for representing the camera location
 glm::vec3 cameraTarget;   // global variable for representing where the camera is pointing at
 glm::vec3 cameraUp;       // global variable for representing whether the camera is pointing up or down
 
 // Camera Previous State Variables
-float angle_prev_x;
-float angle_prev_y;
-float camera_distance_prev;
+float anglePrevX;
+float anglePrevY;
+float camDistancePrev;
 
 // Camera Current State Variables
-float current_angle_x;
-float current_angle_y;
-float current_camera_distance;
+float currentAngleX;
+float currentAngleY;
+float currentCameraDistance;
 
 // Camera Default Settings
 float yaw = 0.0f;   // global variable for controlling horiziontal camera movement
 float pitch = 0.0f; // global variable for controlling vertical camera movement
 float FOV = 45.0f;  // global variable for controlling field of view (zoom)
 
-// Light Variables
+// LIGHT VARIABLES
 // Light Vectors
 glm::vec4 lightPosition;     // global variable for representing the light position for light movement
 glm::vec3 lightViewPosition; // global variable for representing the light location
@@ -81,16 +97,16 @@ glm::vec3 lightTarget;       // global variable for representing
 glm::vec3 lightUp;           // global variable for representing where whether the light is pointing up or down
 
 // Light Previous State Variables
-float light_angle_prev_x;
-float light_angle_prev_y;
+float lightAnglePrevX;
+float lightAnglePrevY;
 
 // Light Current State Variables
-float light_current_angle_x;
-float light_current_angle_y;
+float lightCurrentAngleX;
+float lightCurrentAngleY;
 
 // Light Default Settings
-float light_yaw = 0.0f;   // global variabe for controlling horizontal light movement
-float light_pitch = 0.0f; // global variable for controlling vertical light movement
+float lightYaw = 0.0f;   // global variabe for controlling horizontal light movement
+float lightPitch = 0.0f; // global variable for controlling vertical light movement
 
 // Mouse Event Variables (User Interaction Controls)
 bool leftDown = false;
@@ -110,46 +126,41 @@ std::vector<cy::Vec2f> diffuseTextureCoords;
 std::vector<unsigned char> diffuseTextureData;
 unsigned diffuseWidth, diffuseHeight;
 
-// PLANE Variables
-// Matrix Transform Variables
-// Camera Transform Variables
-glm::mat4 plane_modelMatrix;      // global variable for representing the model space with respect to the camera
-glm::mat4 plane_viewMatrix;       // global variable for representing the view space with respect to the camera
-glm::mat4 plane_projectionMatrix; // global variable for representing the real world space with respect to the camera
-glm::mat4 plane_mvMatrix;         // global variable for representing the model-view space
-glm::mat4 plane_mvpMatrix;        // global variable for representing the model-view-projection space
+// PLANE VARIABLES
+glm::mat4 planeModelMatrix;      // global variable for representing the model space with respect to the camera
+glm::mat4 planeViewMatrix;       // global variable for representing the view space with respect to the camera
+glm::mat4 planeProjectionMatrix; // global variable for representing the real world space with respect to the camera
+glm::mat4 planemvMatrix;         // global variable for representing the model-view space
+glm::mat4 planemvpMatrix;        // global variable for representing the model-view-projection space
 
-// Camera Variables
 // Camera Vectors
-glm::vec3 plane_cameraPosition; // global variable for representing the camera location
-glm::vec3 plane_cameraTarget;   // global variable for representing where the camera is pointing at
-glm::vec3 plane_cameraUp;       // global variable for representing whether the camera is pointing up or down
+glm::vec3 planeCameraPosition; // global variable for representing the camera location
+glm::vec3 planeCameraTarget;   // global variable for representing where the camera is pointing at
+glm::vec3 planeCameraUp;       // global variable for representing whether the camera is pointing up or down
 
 // Camera Previous State Variables
-float plane_angle_prev_x;
-float plane_angle_prev_y;
-float plane_camera_distance_prev;
+float planePrevAngleX;
+float planeAnglePrevY;
+float planeCameraDistancePrev;
 
 // Camera Current State Variables
-float plane_current_angle_x;
-float plane_current_angle_y;
-float plane_current_camera_distance;
+float planeCurrentAngleX;
+float planeCurrentAngleY;
+float planeCurrentCameraDistance;
 
 // Camera Default Settings
-float plane_yaw = 0.0f;   // global variable for controlling horiziontal camera movement
-float plane_pitch = 0.0f; // global variable for controlling vertical camera movement
-float plane_FOV = 45.0f;  // global variable for controlling field of view (zoom)
+float planeYaw = 0.0f;   // global variable for controlling horiziontal camera movement
+float planePitch = 0.0f; // global variable for controlling vertical camera movement
+float planeFOV = 45.0f;  // global variable for controlling field of view (zoom)
 
 // Mouse Event Variables (User Interaction Controls)
-bool plane_leftDown = false;
-bool plane_rightDown = false;
-bool plane_altDown = false;
+bool altDown = false;
 
 // Initialization Functions
 /// <summary>
-/// Initialize the scene camera
+/// Initialize the tea camera
 /// </summary>
-void initializeCamera()
+void teaCameraInit()
 {
     modelMatrix = glm::mat4(1.0f);
 
@@ -172,7 +183,7 @@ void initializeCamera()
 /// <summary>
 /// Initialize the scene lighting
 /// </summary>
-void initializeLight()
+void lightInit()
 {
     lightModelMatrix = glm::mat4(1.0f);
 
@@ -187,23 +198,32 @@ void initializeLight()
 }
 
 /// <summary>
-/// Define Bounding Box for rotation about center for scene
+/// Initialize quad camera
 /// </summary>
-void boundingBox()
+void quadCameraInit()
 {
-    mesh.ComputeBoundingBox();
-    cy::Vec3f boundBoxMin = mesh.GetBoundMin();
-    cy::Vec3f boundBoxMax = mesh.GetBoundMax();
-    float zMidpoint = -0.05 * (boundBoxMax.z + boundBoxMin.z) / 2;
-    modelMatrix = glm::translate(modelMatrix, glm::vec3(0, 0, zMidpoint));
-}
+    planeModelMatrix = glm::mat4(1.0f);
 
-// Transform Functions
+    planeCameraPosition = glm::vec3(0.0f, -1.0f, 1.0f);
+    planeCameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+    planeCameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+    planeViewMatrix = glm::lookAt(
+        planeCameraPosition, // CAMERA POSITION
+        planeCameraTarget,   // and looks at the origin (camera location) CAMERA DIRECTION
+        planeCameraUp        // Head is up (set to 0,-1,0 to look upside-down) // CAMERA RIGHT
+    );
+
+    planeProjectionMatrix = glm::perspective(
+        glm::radians(planeFOV),
+        16.0f / 9.0f,
+        0.1f,
+        100.0f);
+}
 
 /// <summary>
 /// Camera motion in the horizontal and vertical directions
 /// </summary>
-void transformCamera()
+void tea_transformCamera()
 {
     projectionMatrix = glm::perspective(
         glm::radians(FOV),
@@ -222,130 +242,32 @@ void transformCamera()
     viewMatrix = glm::rotate(viewMatrix, glm::radians(yaw), glm::vec3(0, 0, 1));
 }
 
-// PLANE CAMERA FUNCTIONS
-// Initialization Functions
-/// <summary>
-/// Initialize the scene camera
-/// </summary>
-void plane_initializeCamera()
-{
-    plane_modelMatrix = glm::mat4(1.0f);
-
-    plane_cameraPosition = glm::vec3(0.0f, -2.0f, 1.0f);
-    plane_cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-    plane_cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-    plane_viewMatrix = glm::lookAt(
-        plane_cameraPosition, // CAMERA POSITION
-        plane_cameraTarget,   // and looks at the origin (camera location) CAMERA DIRECTION
-        plane_cameraUp        // Head is up (set to 0,-1,0 to look upside-down) // CAMERA RIGHT
-    );
-
-    plane_projectionMatrix = glm::perspective(
-        glm::radians(plane_FOV),
-        16.0f / 9.0f,
-        0.1f,
-        100.0f);
-}
-
-// Transform Functions
-
 /// <summary>
 /// Camera motion in the horizontal and vertical directions
 /// </summary>
-void plane_transformCamera()
+void quad_transformCamera()
 {
-    plane_projectionMatrix = glm::perspective(
-        glm::radians(plane_FOV),
+    planeProjectionMatrix = glm::perspective(
+        glm::radians(planeFOV),
         16.0f / 9.0f,
         0.1f,
         100.0f);
 
-    plane_viewMatrix = glm::lookAt(
-        plane_cameraPosition, // CAMERA POSITION
-        plane_cameraTarget,   // and looks at the origin (camera location) CAMERA DIRECTION
-        plane_cameraUp        // Head is up (set to 0,-1,0 to look upside-down) // CAMERA RIGHT
+    planeViewMatrix = glm::lookAt(
+        planeCameraPosition, // CAMERA POSITION
+        planeCameraTarget,   // and looks at the origin (camera location) CAMERA DIRECTION
+        planeCameraUp        // Head is up (set to 0,-1,0 to look upside-down) // CAMERA RIGHT
     );
 
-    plane_viewMatrix = glm::translate(plane_viewMatrix, plane_cameraTarget);
-    plane_viewMatrix = glm::rotate(plane_viewMatrix, glm::radians(plane_pitch), glm::vec3(1, 0, 0));
-    plane_viewMatrix = glm::rotate(plane_viewMatrix, glm::radians(plane_yaw), glm::vec3(0, 0, 1));
-}
-
-// Callback Functions
-
-/// <summary>
-/// Render Scene data to screen
-/// </summary>
-void myDisplay()
-{
-    // OpenGL Draw Calls Here
-    // Clear the viewport
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // Compute the different matrices and vectors for rendering the scene
-    mvMatrix = viewMatrix * modelMatrix;
-    lightPosition = glm::vec4(107.780487f, 83.130577f, 0.0f, 1.0f);
-    lightMVMatrix = lightViewMatrix * lightModelMatrix;
-    lightPosition = lightMVMatrix * lightPosition;
-    mvpMatrix = projectionMatrix * viewMatrix * modelMatrix;
-    mvnMatrix = glm::inverseTranspose(mvMatrix);
-
-    //// Set Uniform ID Variables for the Shader Program
-    GLuint mvpID = glGetUniformLocation(program.GetID(), "mvp");
-    GLuint mvID = glGetUniformLocation(program.GetID(), "mv");
-    GLuint lightPosID = glGetUniformLocation(program.GetID(), "lightPos");
-    GLuint mvnID = glGetUniformLocation(program.GetID(), "mvn");
-    GLuint diffuseTextureID = glGetUniformLocation(program.GetID(), "tex");
-
-    //// Set Up Texture Unit
-    //// Diffuse Texture
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, diffuseTexture);
-
-    //// Set Uniform Data Variables for the Shader Program
-    glUniformMatrix4fv(mvID, 1, GL_FALSE, &mvMatrix[0][0]);
-    glUniformMatrix4fv(mvpID, 1, GL_FALSE, &mvpMatrix[0][0]);
-    glUniformMatrix4fv(mvnID, 1, GL_FALSE, &mvnMatrix[0][0]);
-    glUniform3f(lightPosID, lightPosition.x, lightPosition.y, lightPosition.z);
-    glUniform1i(diffuseTextureID, 0);
-
-    //// Bind vertex data to vertices of scene
-    glBindVertexArray(vertexArrayObject);
-
-    //// Apply Shaders to the Scene
-    program.Bind();
-
-    //// Render Data to the Screen
-    glDrawArrays(GL_TRIANGLES, 0, triangles.size());
-
-    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // Compute the different matrices and vectors for rendering the scene
-    plane_mvMatrix = plane_viewMatrix * plane_modelMatrix;
-    plane_mvpMatrix = plane_projectionMatrix * plane_viewMatrix * plane_modelMatrix;
-
-    // Set Uniform ID Variables for the Shader Program
-    GLuint plane_mvpID = glGetUniformLocation(quad_program.GetID(), "plane_mvp");
-
-    // Set Uniform Data Variables for the Shader Program
-    glUniformMatrix4fv(plane_mvpID, 1, GL_FALSE, &plane_mvpMatrix[0][0]);
-
-    // Bind vertex data to vertices of scene
-    glBindVertexArray(quad_vertexArrayObject);
-
-    //// Apply Shaders to the Scene
-    quad_program.Bind();
-
-    //// Render Data to the Screen
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-
-    glutSwapBuffers(); // Swap buffers (front and back buffers) to give most up to date rendering of scene
+    planeViewMatrix = glm::translate(planeViewMatrix, planeCameraTarget);
+    planeViewMatrix = glm::rotate(planeViewMatrix, glm::radians(planeYaw), glm::vec3(0, 0, 1));
+    planeViewMatrix = glm::rotate(planeViewMatrix, glm::radians(planePitch), glm::vec3(1, 0, 0));
 }
 
 /// <summary>
 /// Light motion in the horizontal and vertical directions
 /// </summary>
-void transformLight()
+void light_Transform()
 {
     lightViewMatrix = glm::lookAt(
         lightViewPosition, // CAMERA POSITION
@@ -354,10 +276,23 @@ void transformLight()
     );
 
     lightViewMatrix = glm::translate(lightViewMatrix, lightTarget);
-    lightViewMatrix = glm::rotate(lightViewMatrix, glm::radians(-light_pitch), glm::vec3(0, 0, 1));
-    lightViewMatrix = glm::rotate(lightViewMatrix, glm::radians(light_yaw), glm::vec3(0, 1, 0));
+    lightViewMatrix = glm::rotate(lightViewMatrix, glm::radians(-lightPitch), glm::vec3(0, 0, 1));
+    lightViewMatrix = glm::rotate(lightViewMatrix, glm::radians(lightYaw), glm::vec3(0, 1, 0));
 }
 
+/// <summary>
+/// Define Bounding Box for rotation about center for scene
+/// </summary>
+void boundingBox()
+{
+    mesh.ComputeBoundingBox();
+    cy::Vec3f boundBoxMin = mesh.GetBoundMin();
+    cy::Vec3f boundBoxMax = mesh.GetBoundMax();
+    float zMidpoint = -0.05 * (boundBoxMax.z + boundBoxMin.z) / 2;
+    modelMatrix = glm::translate(modelMatrix, glm::vec3(0, 0, zMidpoint));
+}
+
+// Callback Functions
 /// <summary>
 /// Function for handling non-special FreeGlut key events
 /// </summary>
@@ -391,7 +326,7 @@ void mySpecialKeyboard(int key, int x, int y)
     switch (key)
     {
     case GLUT_KEY_F6: // Recompile Shaders
-        bool shader_recompile = program.BuildFiles("shader.vert", "shader.frag");
+        bool shader_recompile = teaProgram.BuildFiles("tea.vert", "tea.frag");
         break;
     }
     return;
@@ -406,68 +341,108 @@ void mySpecialKeyboard(int key, int x, int y)
 /// <param name="y">Screen y-coordinate of mouse location when a button is clicked</param>
 void myMouse(int button, int state, int x, int y)
 {
-    int mod; // variable for storing GLUT Modifier State
-    switch (button)
+    int mod;
+    mod = glutGetModifiers();
+    if (mod == GLUT_ACTIVE_ALT)
     {
-    case GLUT_LEFT_BUTTON: // set the camera angle / light angle
-        if (state == GLUT_DOWN)
+        if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
         {
-            mod = glutGetModifiers();
-            if (mod == (GLUT_ACTIVE_ALT))
-            {
-                plane_leftDown = true;
-                plane_altDown = true;
-                plane_angle_prev_x = (float)x;
-                plane_angle_prev_y = (float)y;
-            }
-            if (mod == (GLUT_ACTIVE_CTRL))
-            {
-                leftDown = true;
-                ctrlDown = true;
-                light_angle_prev_x = (float)x;
-                light_angle_prev_y = (float)y;
-            }
-            else
-            {
-                leftDown = true;
-                ctrlDown = false;
-                angle_prev_x = (float)x;
-                angle_prev_y = (float)y;
-            }
+            planePrevAngleX = (float)x;
+            planeAnglePrevY = (float)y;
+
+            leftDown = true;
+            rightDown = false;
+            ctrlDown = false;
+            altDown = true;
         }
-        if (state == GLUT_UP)
+
+        if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
         {
             leftDown = false;
-            plane_leftDown = false;
-            ctrlDown = false;
-            plane_altDown = false;
-        }
-        break;
-    case GLUT_RIGHT_BUTTON: // set the camera distance
-        if (state == GLUT_DOWN)
-        {
-            mod = glutGetModifiers();
-            if (mod == (GLUT_ACTIVE_ALT))
-            {
-                plane_camera_distance_prev = (float)y;
-                plane_rightDown = true;
-                plane_altDown = true;
-            }
-            else
-            {
-                camera_distance_prev = (float)y;
-                rightDown = true;
-                plane_altDown = false;
-            }
-        }
-        if (state == GLUT_UP)
-        {
             rightDown = false;
-            plane_rightDown = false;
-            plane_altDown = false;
+            ctrlDown = false;
+            altDown = false;
         }
-    default:
-        break;
+
+        if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
+        {
+            planeCameraDistancePrev = (float)y;
+
+            leftDown = false;
+            rightDown = true;
+            ctrlDown = false;
+            altDown = true;
+        }
+
+        if (button == GLUT_RIGHT_BUTTON && state == GLUT_UP)
+        {
+            leftDown = false;
+            rightDown = false;
+            ctrlDown = false;
+            altDown = false;
+        }
+    }
+
+    else if (mod == GLUT_ACTIVE_CTRL)
+    {
+        if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+        {
+            lightAnglePrevX = (float)x;
+            lightAnglePrevY = (float)y;
+
+            leftDown = true;
+            rightDown = false;
+            ctrlDown = true;
+            altDown = false;
+        }
+
+        if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
+        {
+            leftDown = false;
+            rightDown = false;
+            ctrlDown = false;
+            altDown = false;
+        }
+    }
+
+    else
+    {
+        if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+        {
+            anglePrevX = (float)x;
+            anglePrevY = (float)y;
+
+            leftDown = true;
+            rightDown = false;
+            ctrlDown = false;
+            altDown = false;
+        }
+
+        if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
+        {
+            leftDown = false;
+            rightDown = false;
+            ctrlDown = true;
+            altDown = false;
+        }
+
+        if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
+        {
+            camDistancePrev = (float)y;
+
+            leftDown = false;
+            rightDown = true;
+            ctrlDown = false;
+            altDown = false;
+        }
+
+        if (button == GLUT_RIGHT_BUTTON && state == GLUT_UP)
+        {
+            leftDown = false;
+            rightDown = false;
+            ctrlDown = false;
+            altDown = false;
+        }
     }
 }
 
@@ -479,20 +454,25 @@ void myMouse(int button, int state, int x, int y)
 void myMouseMotion(int x, int y)
 {
     // Variables for storing the current camera angle and current distance
-    current_angle_x = (float)x;
-    current_angle_y = (float)y;
-    current_camera_distance = (float)y;
-    light_current_angle_x = (float)x;
-    light_current_angle_y = (float)y;
+    currentAngleX = (float)x;
+    currentAngleY = (float)y;
+    currentCameraDistance = (float)y;
+
+    lightCurrentAngleX = (float)x;
+    lightCurrentAngleY = (float)y;
+
+    planeCurrentAngleX = (float)x;
+    planeCurrentAngleY = (float)y;
+    planeCurrentCameraDistance = (float)y;
 
     // Update Camera angle
-    if (leftDown == true && ctrlDown == false)
+    if (leftDown == true && ctrlDown == false && altDown == false)
     {
         // Calculate the differential x and y when the mouse moves and store the previous coordinate
-        float dx = current_angle_x - angle_prev_x;
-        float dy = current_angle_y - angle_prev_y;
-        angle_prev_x = current_angle_x;
-        angle_prev_y = current_angle_y;
+        float dx = currentAngleX - anglePrevX;
+        float dy = currentAngleY - anglePrevY;
+        anglePrevX = currentAngleX;
+        anglePrevY = currentAngleY;
 
         // Scale the differential for a smooth transition
         dx *= speed;
@@ -503,35 +483,35 @@ void myMouseMotion(int x, int y)
         pitch += dy;
 
         // Update Camera View
-        transformCamera();
+        tea_transformCamera();
     }
 
     // Update Light Angle
-    if (leftDown == true && ctrlDown == true)
+    if (leftDown == true && ctrlDown == true && altDown == false)
     {
-        float dx = light_current_angle_x - light_angle_prev_x;
-        float dy = light_current_angle_y - light_angle_prev_y;
-        light_angle_prev_x = light_current_angle_x;
-        light_angle_prev_y = light_current_angle_y;
+        float dx = lightCurrentAngleX - lightAnglePrevX;
+        float dy = lightCurrentAngleY - lightAnglePrevY;
+        lightAnglePrevX = lightCurrentAngleX;
+        lightAnglePrevY = lightCurrentAngleY;
 
         // Scale the differential for a smooth transition
         dx *= speed;
         dy *= speed;
 
         // Set yaw and pitch
-        light_yaw += dx;
-        light_pitch += dy;
+        lightYaw += dx;
+        lightPitch += dy;
 
         // Update Scene Lighting
-        transformLight();
+        light_Transform();
     }
 
     // Update Field of View
-    if (rightDown == true && ctrlDown == false)
+    if (rightDown == true && ctrlDown == false && altDown == false)
     {
         float dy = 0.0f;
-        dy += current_camera_distance - camera_distance_prev;
-        camera_distance_prev = current_camera_distance;
+        dy += currentCameraDistance - camDistancePrev;
+        camDistancePrev = currentCameraDistance;
         dy *= speed;
         FOV += dy;
         if (FOV < 10.0f)
@@ -544,54 +524,49 @@ void myMouseMotion(int x, int y)
             FOV = 90.0f;
         }
         // Update Camera View
-        transformCamera();
+        tea_transformCamera();
     }
 
-    // Variables for storing the current camera angle and current distance
-    plane_current_angle_x = (float)x;
-    plane_current_angle_y = (float)y;
-    plane_current_camera_distance = (float)y;
-
     // Update Camera angle
-    if (plane_leftDown == true && plane_altDown == true)
+    if (leftDown == true && altDown == true && ctrlDown == false)
     {
         // Calculate the differential x and y when the mouse moves and store the previous coordinate
-        float dx = plane_current_angle_x - plane_angle_prev_x;
-        float dy = plane_current_angle_y - plane_angle_prev_y;
-        plane_angle_prev_x = plane_current_angle_x;
-        plane_angle_prev_y = plane_current_angle_y;
+        float dx = planeCurrentAngleX - planePrevAngleX;
+        float dy = planeCurrentAngleY - planeAnglePrevY;
+        planePrevAngleX = planeCurrentAngleX;
+        planeAnglePrevY = planeCurrentAngleY;
 
         // Scale the differential for a smooth transition
         dx *= speed;
         dy *= speed;
 
         // Set yaw and pitch
-        plane_yaw += dx;
-        plane_pitch += dy;
+        planeYaw += dx;
+        planePitch += dy;
 
         // Update Camera View
-        plane_transformCamera();
+        quad_transformCamera();
     }
 
     // Update Field of View
-    if (plane_rightDown == true && plane_altDown == true)
+    if (rightDown == true && altDown == true && ctrlDown == false)
     {
         float dy = 0.0f;
-        dy += plane_current_camera_distance - plane_camera_distance_prev;
-        plane_camera_distance_prev = plane_current_camera_distance;
+        dy += planeCurrentCameraDistance - planeCameraDistancePrev;
+        planeCameraDistancePrev = planeCurrentCameraDistance;
         dy *= speed;
-        plane_FOV += dy;
-        if (plane_FOV < 10.0f)
+        planeFOV += dy;
+        if (planeFOV < 10.0f)
         {
-            plane_FOV = 10.0f;
+            planeFOV = 10.0f;
         }
-        if (plane_FOV > 90.0f)
+        if (planeFOV > 90.0f)
         {
 
-            plane_FOV = 90.0f;
+            planeFOV = 90.0f;
         }
         // Update Camera View
-        plane_transformCamera();
+        quad_transformCamera();
     }
 }
 
@@ -618,7 +593,7 @@ void teapotTexture()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_MAX_ANISOTROPY);
     glGenerateMipmap(GL_TEXTURE_2D);
 }
 
@@ -668,8 +643,8 @@ void loadTeapotBuffers()
 {
 
     // Vertex Array Object
-    glGenVertexArrays(1, &vertexArrayObject);
-    glBindVertexArray(vertexArrayObject);
+    glGenVertexArrays(1, &teaVertexArrayObject);
+    glBindVertexArray(teaVertexArrayObject);
 
     // Create Buffers
     // Vertex Buffer
@@ -707,21 +682,21 @@ void loadTeapotBuffers()
 void teapotBindBuffersToVertices()
 {
     // Assign Vertex Buffer Objects to Vertex Attributes
-    GLuint pos = glGetAttribLocation(program.GetID(), "pos");
+    GLuint pos = glGetAttribLocation(teaProgram.GetID(), "pos");
     glEnableVertexAttribArray(pos);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
     glVertexAttribPointer(
         pos, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *)0);
 
     // Assign Normal Buffer Objects to Vertex Attributes
-    GLuint normalPos = glGetAttribLocation(program.GetID(), "normalPos");
+    GLuint normalPos = glGetAttribLocation(teaProgram.GetID(), "normalPos");
     glEnableVertexAttribArray(normalPos);
     glBindBuffer(GL_ARRAY_BUFFER, normalBufferObject);
     glVertexAttribPointer(
         normalPos, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *)0);
 
     // Assign Diffuse Texture Buffer Objects to Vertex Attributes
-    GLuint diffuseTexturePos = glGetAttribLocation(program.GetID(), "txc");
+    GLuint diffuseTexturePos = glGetAttribLocation(teaProgram.GetID(), "txc");
     glEnableVertexAttribArray(diffuseTexturePos);
     glBindBuffer(GL_ARRAY_BUFFER, diffuseTextureBufferObject);
     glVertexAttribPointer(
@@ -733,12 +708,12 @@ void teapotBindBuffersToVertices()
 /// </summary>
 void teaInit()
 {
-    teapotTexture();                                                  // load and set up texture for teapot
-    loadTeapotData();                                                 // load teapot scene data
-    loadTeapotBuffers();                                              // load the buffers for the teapot
-    bool shader_compile = program.BuildFiles("tea.vert", "tea.frag"); // compile the shaders
-    teapotBindBuffersToVertices();                                    // bind the buffers to the vertices
-    boundingBox();                                                    // bounding box
+    teapotTexture();                                                     // load and set up texture for teapot
+    loadTeapotData();                                                    // load teapot scene data
+    loadTeapotBuffers();                                                 // load the buffers for the teapot
+    bool shader_compile = teaProgram.BuildFiles("tea.vert", "tea.frag"); // compile the shaders
+    teapotBindBuffersToVertices();                                       // bind the buffers to the vertices
+    boundingBox();                                                       // bounding box
 }
 
 /// <summary>
@@ -747,46 +722,171 @@ void teaInit()
 void quadInit()
 {
     static const GLfloat quad_vertex_buffer_data[] = {
-        -10.0f,
-        -10.0f,
+        -1.0f,
+        -1.0f,
         0.0f,
-        10.0f,
-        -10.0f,
+        1.0f,
+        -1.0f,
         0.0f,
-        -10.0f,
-        10.0f,
+        -1.0f,
+        1.0f,
         0.0f,
-        -10.0f,
-        10.0f,
+        -1.0f,
+        1.0f,
         0.0f,
-        10.0f,
-        -10.0f,
+        1.0f,
+        -1.0f,
         0.0f,
-        10.0f,
-        10.0f,
+        1.0f,
+        1.0f,
         0.0f,
     };
 
     // Vertex Array Object
-    glGenVertexArrays(1, &quad_vertexArrayObject);
-    glBindVertexArray(quad_vertexArrayObject);
+    glGenVertexArrays(1, &quadVertexArrayObject);
+    glBindVertexArray(quadVertexArrayObject);
 
-    // Normal Buffer
-    glGenBuffers(1, &quad_vertexBufferObject);
-    glBindBuffer(GL_ARRAY_BUFFER, quad_vertexBufferObject);
+    // Vertex Buffer Object
+    glGenBuffers(1, &quadVertexBufferObject);
+    glBindBuffer(GL_ARRAY_BUFFER, quadVertexBufferObject);
     glBufferData(GL_ARRAY_BUFFER, sizeof(quad_vertex_buffer_data), quad_vertex_buffer_data, GL_STATIC_DRAW);
 
     // Compile shaders
-    bool quad_compile_shaders = quad_program.BuildFiles("plane.vert", "plane.frag");
+    bool quad_compile_shaders = quadProgram.BuildFiles("plane.vert", "plane.frag");
+
     // Assign Vertex Buffer Objects to Vertex Attributes
-    GLuint plane_pos = glGetAttribLocation(quad_program.GetID(), "plane_pos");
+    GLuint plane_pos = glGetAttribLocation(quadProgram.GetID(), "plane_pos");
     glEnableVertexAttribArray(plane_pos);
-    glBindBuffer(GL_ARRAY_BUFFER, quad_vertexBufferObject);
+    glBindBuffer(GL_ARRAY_BUFFER, quadVertexBufferObject);
     glVertexAttribPointer(
         plane_pos, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *)0);
 }
 
+/// <summary>
+/// Configure the frame buffer to render to texture
+/// </summary>
+void renderBufferInit()
+{
+    // FRAME BUFFER
+    frameBuffer = 0;
+    glGenFramebuffers(1, &frameBuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+
+    // TEXTURE
+    glGenTextures(1, &renderedTexture);
+    glBindTexture(GL_TEXTURE_2D, renderedTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, window_width, window_height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    // DEPTH BUFFER
+    glGenRenderbuffers(1, &depthBuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, window_width, window_height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
+
+    // CONFIGURE FRAME BUFFER
+    glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0);
+    GLenum drawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+    glDrawBuffers(1, drawBuffers);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
+        std::cout << "THERE WAS AN ERROR WITH THE FRAME BUFFER! GET SHREKT!" << std::endl;
+    }
+}
+
+/// <summary>
+/// Render Scene data to screen
+/// </summary>
+void render()
+{
+
+    // Specify OpenGL Settings
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_LESS);
+    glEnable(GL_TEXTURE_2D);
+
+    // Bind Frame Buffer
+    glViewport(0, 0, window_width, window_height);
+    glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Bind tea shader program
+    teaProgram.Bind();
+
+    // Compute the different matrices and vectors for rendering the scene
+    mvMatrix = viewMatrix * modelMatrix;
+    lightPosition = glm::vec4(107.780487f, 83.130577f, 0.0f, 1.0f);
+    lightMVMatrix = lightViewMatrix * lightModelMatrix;
+    lightPosition = lightMVMatrix * lightPosition;
+    mvpMatrix = projectionMatrix * viewMatrix * modelMatrix;
+    mvnMatrix = glm::inverseTranspose(mvMatrix);
+
+    //// Set Uniform ID Variables for the Shader Program
+    GLuint mvpID = glGetUniformLocation(teaProgram.GetID(), "mvp");
+    GLuint mvID = glGetUniformLocation(teaProgram.GetID(), "mv");
+    GLuint lightPosID = glGetUniformLocation(teaProgram.GetID(), "lightPos");
+    GLuint mvnID = glGetUniformLocation(teaProgram.GetID(), "mvn");
+    GLuint diffuseTextureID = glGetUniformLocation(teaProgram.GetID(), "tex");
+
+    //// Set Up Texture Unit
+    //// Diffuse Texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, diffuseTexture);
+
+    //// Set Uniform Data Variables for the Shader Program
+    glUniformMatrix4fv(mvID, 1, GL_FALSE, &mvMatrix[0][0]);
+    glUniformMatrix4fv(mvpID, 1, GL_FALSE, &mvpMatrix[0][0]);
+    glUniformMatrix4fv(mvnID, 1, GL_FALSE, &mvnMatrix[0][0]);
+    glUniform3f(lightPosID, lightPosition.x, lightPosition.y, lightPosition.z);
+    glUniform1i(diffuseTextureID, 0);
+
+    //// Bind vertex data to vertices of scene
+    glBindVertexArray(teaVertexArrayObject);
+
+    //// Render Data to the Screen
+    glDrawArrays(GL_TRIANGLES, 0, triangles.size());
+    glGenerateTextureMipmap(renderedTexture);
+
+    // RENDER TO TEXTURE SCREEN
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, window_width, window_height);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Bind Quad Program
+    quadProgram.Bind();
+
+    // Bind our texture in Texture Unit 0
+    GLuint teaTextureID = glGetUniformLocation(quadProgram.GetID(), "renderTexture");
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, renderedTexture);
+    glUniform1i(teaTextureID, 0);
+
+    // Compute the different matrices and vectors for rendering the scene
+    planemvMatrix = planeViewMatrix * planeModelMatrix;
+    planemvpMatrix = planeProjectionMatrix * planeViewMatrix * planeModelMatrix;
+
+    // Set Uniform ID Variables for the Shader Program
+    GLuint plane_mvpID = glGetUniformLocation(quadProgram.GetID(), "plane_mvp");
+
+    // Set Uniform Data Variables for the Shader Program
+    glUniformMatrix4fv(plane_mvpID, 1, GL_FALSE, &planemvpMatrix[0][0]);
+
+    // Bind vertex data to vertices of scene
+    glBindVertexArray(quadVertexArrayObject);
+
+    //// Render Data to the Screen
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glutSwapBuffers(); // Swap buffers (front and back buffers) to give most up to date rendering of scene
+}
+
 using namespace std;
+
 int main(int argc, char **argv)
 {
     // GLUT Initialization
@@ -794,7 +894,7 @@ int main(int argc, char **argv)
     glutInit(&argc, argv);        // Initialize GLUT
 
     // Create a Window
-    glutInitWindowSize(1920, 1080);                            // specify width, height of window
+    glutInitWindowSize(window_width, window_height);           // specify width, height of window
     glutInitWindowPosition(0, 0);                              // specify the position of the window (x, y) coordinate for center
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH); // Initialize the display
     glutCreateWindow("Window Title");
@@ -802,13 +902,8 @@ int main(int argc, char **argv)
     // Initialize GLEW
     glewInit();
 
-    // Specify OpenGL Settings
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_LESS);
-    glEnable(GL_CULL_FACE);
-
     // Callback Functions
-    glutDisplayFunc(myDisplay);         // rendering callback function
+    glutDisplayFunc(render);            // rendering callback function
     glutKeyboardFunc(myKeyboard);       // keyboard callback function
     glutSpecialFunc(mySpecialKeyboard); // special keyboard callback function
     glutMouseFunc(myMouse);             // mouse click event callback function
@@ -817,14 +912,13 @@ int main(int argc, char **argv)
 
     // Initialize Scene
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);         // Clear the previous color and initialize background to black
-    initializeCamera();                           // initialize camera
-    plane_initializeCamera();                     // intialize plane camera
-    initializeLight();                            // initialize scene lighting
+    teaCameraInit();                              // initialize camera
+    quadCameraInit();                             // intialize plane camera
+    lightInit();                                  // initialize scene lighting
     bool success = mesh.LoadFromFileObj(argv[1]); // Load scene from .obj files
-    // teaInit(); // load and render the teapot
-    quadInit(); // load and render the plane
-
-    // Set up rendering for the scene
+    teaInit();                                    // load and render the teapot
+    renderBufferInit();
+    quadInit();     // load and render the plane
     glutMainLoop(); // Call main loop for rendering
     return 0;       // Exit when main loop is done
 }
